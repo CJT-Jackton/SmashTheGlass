@@ -1,7 +1,5 @@
 # Smash the glass
 
-----------
-
 ## Overview:  
 An interactive webpage to simulate the effect of a 3D shattered glass smashed by the user.  
 Users will click on the screen to shoot a bullet or smashing a hammer, the glass will be broken like the following image.  
