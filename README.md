@@ -9,7 +9,7 @@ Users will click on the screen to shoot a bullet or smashing a hammer, the glass
 Will be using Voronoi diagram to imitate the desired effect.  
 
 ## Language and tools:  
-Unity  
+Unity (C#)  
 [WebGL](http://learningwebgl.com/blog/?p=11)  
 
 ## References:  
