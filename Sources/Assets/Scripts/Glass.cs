@@ -9,8 +9,6 @@ public class Glass : MonoBehaviour
     private GameObject glass;
     private List<GameObject> pieces;
     private Rigidbody rigidbody;
-    private GameObject rp;
-    private ReflectionProbe reflectionProbe;
     private GeneratePieces gp;
 
     private bool _broken;
@@ -19,16 +17,6 @@ public class Glass : MonoBehaviour
     void Start()
     {
         pieces = new List<GameObject>();
-
-        rp = new GameObject();
-        rp.name = "Reflection Probe";
-
-        reflectionProbe = rp.AddComponent<ReflectionProbe>() as ReflectionProbe;
-        reflectionProbe.mode = UnityEngine.Rendering.ReflectionProbeMode.Realtime;
-        reflectionProbe.refreshMode = UnityEngine.Rendering.ReflectionProbeRefreshMode.EveryFrame;
-        reflectionProbe.boxProjection = true;
-        reflectionProbe.resolution = 128;
-        reflectionProbe.size = new Vector3(10, 10, 10);
 
         gp = GetComponent<GeneratePieces>();
 
@@ -53,18 +41,28 @@ public class Glass : MonoBehaviour
                 v[2] = new Vector3(1, 0, 1);
                 v[3] = new Vector3(0, 0, 1);
 
-                GameObject p = gp.CreatePiece(v);
-                p.transform.parent = gameObject.transform;
-                p.transform.localPosition = new Vector3(0, 0, 0);
-                p.transform.localRotation = Quaternion.Euler(0, 0, 0);
+                AddPiece(v);
 
-                p.GetComponent<Renderer>().material = glassMaterial;
+                v[0] = new Vector3(0, 0, 0);
+                v[1] = new Vector3(0, 0, -1);
+                v[2] = new Vector3(1, 0, -1);
+                v[3] = new Vector3(1, 0, 0);
 
-                p.name = "Piece " + (pieces.Count + 1).ToString("D2");
+                AddPiece(v);
 
-                p.AddComponent<Smash>();
+                v[0] = new Vector3(0, 0, 0);
+                v[1] = new Vector3(0, 0, 1);
+                v[2] = new Vector3(-1, 0, 1);
+                v[3] = new Vector3(-1, 0, 0);
 
-                pieces.Add(p);
+                AddPiece(v);
+
+                v[0] = new Vector3(0, 0, 0);
+                v[1] = new Vector3(-1, 0, 0);
+                v[2] = new Vector3(-1, 0, -1);
+                v[3] = new Vector3(0, 0, -1);
+
+                AddPiece(v);
             }
         }
 
@@ -77,16 +75,28 @@ public class Glass : MonoBehaviour
         }
     }
 
-    void OnMouseDown()
-    {
-        
-    }
-
     IEnumerator ExecuteAfterTime(float time)
     {
         yield return new WaitForSeconds(time);
 
         Destroy(glass);
+    }
+
+    void AddPiece(Vector3[] vertices)
+    {
+        // Create the game object
+        GameObject p = gp.CreatePiece(vertices);
+        p.name = "Piece " + (pieces.Count + 1).ToString("D2");
+
+        // Set up the transformation
+        p.transform.parent = gameObject.transform;
+        p.transform.localPosition = new Vector3(0, 0, 0);
+        p.transform.localRotation = Quaternion.Euler(-90, 0, 0);
+
+        // Assign material
+        p.GetComponent<Renderer>().material = glassMaterial;
+
+        pieces.Add(p);
     }
 
     void ResetGlass()
@@ -95,7 +105,7 @@ public class Glass : MonoBehaviour
         {
             _broken = false;
 
-            foreach(GameObject p in pieces)
+            foreach (GameObject p in pieces)
             {
                 Destroy(p);
             }
@@ -113,15 +123,29 @@ public class Glass : MonoBehaviour
             Renderer renderer = glass.GetComponent<Renderer>();
             renderer.material = glassMaterial;
 
-            rp.transform.parent = glass.transform;
-            rp.transform.localPosition = new Vector3(0, 0, 0);
-            rp.transform.localScale = new Vector3(1, 1, 1);
+            GameObject reflectionProbe = CreateReflectionProbe();
+            reflectionProbe.transform.parent = glass.transform;
+            reflectionProbe.transform.localPosition = new Vector3(0, 0, 0);
+            reflectionProbe.transform.localScale = new Vector3(1, 1, 1);
 
             rigidbody = glass.AddComponent(typeof(Rigidbody)) as Rigidbody;
             rigidbody.constraints = RigidbodyConstraints.FreezePositionY | RigidbodyConstraints.FreezeRotationY;
-
-            glass.AddComponent<Smash>();
         }
+    }
+
+    GameObject CreateReflectionProbe()
+    {
+        GameObject rp = new GameObject();
+        rp.name = "Reflection Probe";
+
+        ReflectionProbe reflectionProbe = rp.AddComponent<ReflectionProbe>() as ReflectionProbe;
+        reflectionProbe.mode = UnityEngine.Rendering.ReflectionProbeMode.Realtime;
+        reflectionProbe.refreshMode = UnityEngine.Rendering.ReflectionProbeRefreshMode.EveryFrame;
+        reflectionProbe.boxProjection = true;
+        reflectionProbe.resolution = 256;
+        reflectionProbe.size = new Vector3(10, 10, 10);
+
+        return rp;
     }
 
     bool IsBroken()

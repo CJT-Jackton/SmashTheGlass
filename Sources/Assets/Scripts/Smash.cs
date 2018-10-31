@@ -5,18 +5,33 @@ using UnityEngine;
 public class Smash : MonoBehaviour
 {
     public float thrust = 100.0f;
-    public new Rigidbody rigidbody;
 
-    // Use this for initialization
-    void Start()
-    {
-        rigidbody = GetComponent<Rigidbody>();
-    }
+    private Rigidbody rigidbody;
 
-    void OnMouseDown()
+    void Update()
     {
-        rigidbody.AddForceAtPosition(transform.up * -thrust, new Vector3(0, 1.63f, 0));
-        rigidbody.useGravity = true;
-        rigidbody.constraints = RigidbodyConstraints.None;
+        if (Input.GetMouseButtonDown(0))
+        {
+            RaycastHit hit;
+            var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+
+            if (Physics.Raycast(ray, out hit))
+            {
+                if (hit.collider != null)
+                {
+                    foreach (Transform child in transform)
+                    {
+                        rigidbody = child.GetComponent<Rigidbody>();
+
+                        if (rigidbody.constraints != RigidbodyConstraints.None)
+                        {
+                            rigidbody.constraints = RigidbodyConstraints.None;
+                            rigidbody.useGravity = true;
+                            rigidbody.AddForceAtPosition(transform.forward.normalized * thrust, hit.point);
+                        }
+                    }
+                }
+            }
+        }
     }
 }
