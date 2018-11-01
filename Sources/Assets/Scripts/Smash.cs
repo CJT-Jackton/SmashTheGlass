@@ -8,6 +8,13 @@ public class Smash : MonoBehaviour
 
     private Rigidbody rigidbody;
 
+    private float normalDistribution(float x)
+    {
+        float stdDev = 1.0f;
+        float mean = 0;
+        return Mathf.Exp(-Mathf.Pow((x - mean), 2.0f) / (2.0f * stdDev * stdDev));
+    }
+
     void Update()
     {
         if (Input.GetMouseButtonDown(0))
@@ -27,7 +34,18 @@ public class Smash : MonoBehaviour
                         {
                             rigidbody.constraints = RigidbodyConstraints.None;
                             rigidbody.useGravity = true;
-                            rigidbody.AddForceAtPosition(transform.forward.normalized * thrust, hit.point);
+
+                            Renderer renderer = child.GetComponent<Renderer>();
+
+                            Vector3 force = transform.forward.normalized * thrust;
+
+                            if (!renderer.bounds.Contains(hit.point))
+                            {
+                                float dist = Vector3.Distance(child.GetComponent<Renderer>().bounds.center, hit.point);
+                                force *= normalDistribution(dist);
+                            }
+
+                            rigidbody.AddForceAtPosition(force, hit.point);
                         }
                     }
                 }

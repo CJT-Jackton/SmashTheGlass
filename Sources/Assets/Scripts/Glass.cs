@@ -123,10 +123,10 @@ public class Glass : MonoBehaviour
             Renderer renderer = glass.GetComponent<Renderer>();
             renderer.material = glassMaterial;
 
-            GameObject reflectionProbe = CreateReflectionProbe();
-            reflectionProbe.transform.parent = glass.transform;
-            reflectionProbe.transform.localPosition = new Vector3(0, 0, 0);
-            reflectionProbe.transform.localScale = new Vector3(1, 1, 1);
+            // GameObject reflectionProbe = CreateReflectionProbe();
+            // reflectionProbe.transform.parent = glass.transform;
+            // reflectionProbe.transform.localPosition = new Vector3(0, 0, 0);
+            // reflectionProbe.transform.localScale = new Vector3(1, 1, 1);
 
             rigidbody = glass.AddComponent(typeof(Rigidbody)) as Rigidbody;
             rigidbody.constraints = RigidbodyConstraints.FreezePositionY | RigidbodyConstraints.FreezeRotationY;
