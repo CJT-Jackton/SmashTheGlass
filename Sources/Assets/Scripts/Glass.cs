@@ -10,6 +10,8 @@ public class Glass : MonoBehaviour
     private List<GameObject> pieces;
     private Rigidbody rigidbody;
     private GeneratePieces gp;
+    private RandomPoint randomPoint;
+    private VoronoiCell voronoi;
 
     private bool _broken;
 
@@ -19,6 +21,8 @@ public class Glass : MonoBehaviour
         pieces = new List<GameObject>();
 
         gp = GetComponent<GeneratePieces>();
+        randomPoint = GetComponent<RandomPoint>();
+        voronoi = GetComponent<VoronoiCell>();
 
         _broken = true;
 
@@ -35,34 +39,29 @@ public class Glass : MonoBehaviour
                 _broken = true;
                 Destroy(glass);
 
-                Vector3[] v = new Vector3[4];
-                v[0] = new Vector3(0, 0, 0);
-                v[1] = new Vector3(1, 0, 0);
-                v[2] = new Vector3(1, 0, 1);
-                v[3] = new Vector3(0, 0, 1);
+                Vector2[][] pieces = voronoi.GenerateVoronoi(randomPoint.getRandomPoint());
 
-                AddPiece(v);
+                foreach (Vector2[] piece in pieces)
+                {
+                    Vector3[] vertices = new Vector3[piece.Length];
 
-                v[0] = new Vector3(0, 0, 0);
-                v[1] = new Vector3(0, 0, -1);
-                v[2] = new Vector3(1, 0, -1);
-                v[3] = new Vector3(1, 0, 0);
+                    for (uint i = 0; i < piece.Length; ++i)
+                    {
+                        vertices[i] = new Vector3(piece[i].x, 0, piece[i].y);
+                    }
 
-                AddPiece(v);
-
-                v[0] = new Vector3(0, 0, 0);
-                v[1] = new Vector3(0, 0, 1);
-                v[2] = new Vector3(-1, 0, 1);
-                v[3] = new Vector3(-1, 0, 0);
-
-                AddPiece(v);
-
-                v[0] = new Vector3(0, 0, 0);
-                v[1] = new Vector3(-1, 0, 0);
-                v[2] = new Vector3(-1, 0, -1);
-                v[3] = new Vector3(0, 0, -1);
-
-                AddPiece(v);
+                    if(vertices.Length < 3)
+                    {
+                        foreach(Vector3 v in vertices)
+                        {
+                            Debug.Log(v);
+                        }
+                    }
+                    else
+                    {
+                        AddPiece(vertices);
+                    }
+                }
             }
         }
 
@@ -87,6 +86,14 @@ public class Glass : MonoBehaviour
         // Create the game object
         GameObject p = gp.CreatePiece(vertices);
         p.name = "Piece " + (pieces.Count + 1).ToString("D2");
+
+        if(pieces.Count == 29)
+        {
+            foreach(Vector3 v in vertices)
+            {
+                Debug.Log(v);
+            }
+        }
 
         // Set up the transformation
         p.transform.parent = gameObject.transform;

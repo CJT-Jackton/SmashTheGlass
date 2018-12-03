@@ -6,53 +6,130 @@ using System.Linq;
 using System.Text;
 using System.IO;
 
-public class VoronoiCell : MonoBehaviour {
-
+public class VoronoiCell : MonoBehaviour
+{
     static EventQueue eq = new EventQueue();
     static BeachLine BL = new BeachLine();
-    static double currentY, lastY;
-    static double boundaryLow, boundaryHigh, boundaryLeft, boundaryRight;
+    static float currentY, lastY;
+    static float boundaryLow, boundaryHigh, boundaryLeft, boundaryRight;
     static Cell[] allCells;
     static int count = 0;
     static List<VoronoiVertexPoint> voronoiVertex = new List<VoronoiVertexPoint>();
 
     // Use this for initialization
-    void Start () {
-        
+    //void Start () {
+
+    //    boundaryLow = -1;
+    //    boundaryHigh = 1;
+    //    boundaryLeft = -1;
+    //    boundaryRight = 1;
+    //    int numberOfCell = 0;
+
+    //    // Read file.
+    //    try
+    //    {
+    //        using (StreamReader sr = new StreamReader("Assets/Output.txt"))
+    //        {
+    //            String line = sr.ReadLine();
+    //            numberOfCell = Int32.Parse(line);
+    //            allCells = new Cell[numberOfCell];
+
+    //            for (int i = 0; i < numberOfCell; i++)
+    //            {
+    //                line = sr.ReadLine();
+    //                String[] split = line.Split(' ');
+    //                float x = float.Parse(split[0]);
+    //                float y = float.Parse(split[1]);
+    //                Site newSite = new Site(0, i, x, y);
+    //                eq.Enqueue(newSite);
+    //                allCells[i] = new Cell(2, i, x, y);
+    //            }
+    //        }
+    //    }
+    //    catch (Exception e)
+    //    {
+    //        Debug.Log("The file could not be read:");
+    //        Debug.Log(e.Message);
+    //    }
+
+    //    lastY = float.MaxValue;
+    //    while (!eq.IsEmpty())
+    //    {
+    //        Site eventP = eq.Dequeue();
+    //        currentY = eventP.GetY();
+    //        if (currentY <= boundaryLow)
+    //        {
+    //            Debug.Log("Reach lower boundary. " + currentY);
+    //            break;
+    //        }
+    //        if (currentY > lastY)
+    //        {
+    //            //Debug.Log("Earlier event."+ currentY+" > "+ lastY);
+    //            continue;
+    //        }
+
+    //        if (eventP.type == 0)
+    //        {
+    //            BL.Insert(eventP);
+    //        }
+    //        else if (eventP.type == 1)
+    //            BL.HandleVVEvent((VoronoiVertexPoint)eventP);
+
+    //        lastY = currentY;
+    //    }
+
+    //    // Output.
+    //    try
+    //    {
+    //        using (StreamWriter sw = new StreamWriter("Assets/outputVoronoiCell.txt"))
+    //        {
+    //            sw.WriteLine(numberOfCell);
+
+    //            foreach (Cell cell in allCells)
+    //            {
+    //                cell.HandleEdges(boundaryHigh, boundaryLow, boundaryLeft, boundaryRight);
+    //                cell.Sort();
+    //                sw.WriteLine(cell.relatedVoronoiVertex.Count);
+    //                for (int i = 0; i < cell.relatedVoronoiVertex.Count; i++)
+    //                {
+    //                    sw.WriteLine(cell.relatedVoronoiVertex[i].x + " " +
+    //                        (cell.relatedVoronoiVertex[i].y + cell.relatedVoronoiVertex[i].radius));
+    //                }
+    //            }
+    //        }
+    //    }
+    //    catch (Exception e)
+    //    {
+    //        Debug.Log("Fail to create output file!");
+    //        Debug.Log(e.Message);
+    //    }
+    //}
+
+    public Vector2[][] GenerateVoronoi(Vector2[] points)
+    {
+        Vector2[][] OutputPoints;
+
         boundaryLow = -1;
         boundaryHigh = 1;
         boundaryLeft = -1;
         boundaryRight = 1;
         int numberOfCell = 0;
 
-        // Read file.
-        try
-        {
-            using (StreamReader sr = new StreamReader("Assets/Output.txt"))
-            {
-                String line = sr.ReadLine();
-                numberOfCell = Int32.Parse(line);
-                allCells = new Cell[numberOfCell];
+        // Read points.
+        numberOfCell = points.Length;
+        allCells = new Cell[numberOfCell];
 
-                for (int i = 0; i < numberOfCell; i++)
-                {
-                    line = sr.ReadLine();
-                    String[] split = line.Split(' ');
-                    double x = Double.Parse(split[0]);
-                    double y = Double.Parse(split[1]);
-                    Site newSite = new Site(0, i, x, y);
-                    eq.Enqueue(newSite);
-                    allCells[i] = new Cell(2, i, x, y);
-                }
-            }
-        }
-        catch (Exception e)
+        for (int i = 0; i < numberOfCell; i++)
         {
-            Debug.Log("The file could not be read:");
-            Debug.Log(e.Message);
+
+            float x = points[i].x;
+            float y = points[i].y;
+            Site newSite = new Site(0, i, x, y);
+            eq.Enqueue(newSite);
+            allCells[i] = new Cell(2, i, x, y);
         }
 
-        lastY = double.MaxValue;
+        lastY = float.MaxValue;
         while (!eq.IsEmpty())
         {
             Site eventP = eq.Dequeue();
@@ -79,30 +156,24 @@ public class VoronoiCell : MonoBehaviour {
         }
 
         // Output.
-        try
-        {
-            using (StreamWriter sw = new StreamWriter("Assets/outputVoronoiCell.txt"))
-            {
-                sw.WriteLine(numberOfCell);
+        OutputPoints = new Vector2[allCells.Length][];
 
-                foreach (Cell cell in allCells)
-                {
-                    cell.HandleEdges(boundaryHigh, boundaryLow, boundaryLeft, boundaryRight);
-                    cell.Sort();
-                    sw.WriteLine(cell.relatedVoronoiVertex.Count);
-                    for (int i = 0; i < cell.relatedVoronoiVertex.Count; i++)
-                    {
-                        sw.WriteLine(cell.relatedVoronoiVertex[i].x + " " +
-                            (cell.relatedVoronoiVertex[i].y + cell.relatedVoronoiVertex[i].radius));
-                    }
-                }
+        for (int i = 0; i < allCells.Length; ++i)
+        {
+            Cell cell = allCells[i];
+
+            cell.HandleEdges(boundaryHigh, boundaryLow, boundaryLeft, boundaryRight);
+            cell.Sort();
+
+            OutputPoints[i] = new Vector2[cell.relatedVoronoiVertex.Count];
+
+            for (int j = 0; j < cell.relatedVoronoiVertex.Count; ++j)
+            {
+                OutputPoints[i][j] = new Vector2(cell.relatedVoronoiVertex[j].x, cell.relatedVoronoiVertex[j].y + cell.relatedVoronoiVertex[j].radius);
             }
         }
-        catch (Exception e)
-        {
-            Debug.Log("Fail to create output file!");
-            Debug.Log(e.Message);
-        }
+
+        return OutputPoints;
     }
 
     public class BeachLine
@@ -128,8 +199,8 @@ public class VoronoiCell : MonoBehaviour {
             else
             {
                 bool findRight = false;
-                double ymin = double.MaxValue;
-                double parabola = 0;
+                float ymin = float.MaxValue;
+                float parabola = 0;
                 Node target = head;
                 Node current = head;
 
@@ -141,7 +212,7 @@ public class VoronoiCell : MonoBehaviour {
                     parabola = GetParabolaIntersect(current.s.x, current.s.y, newNode.s.y, newNode.s.x);
 
                     // No intersection yet.
-                    if (Double.IsInfinity(parabola) && ymin == double.MaxValue)
+                    if (float.IsInfinity(parabola) && ymin == float.MaxValue)
                         target = current;
                     if (parabola <= ymin)
                     {
@@ -295,9 +366,9 @@ public class VoronoiCell : MonoBehaviour {
         {
             if (pi.Equals(pk))
                 return null;
-            double[] circleInfo = new double[3];
+            float[] circleInfo = new float[3];
             circleInfo = GetCircle(pi, pj, pk);
-            if (Double.IsInfinity(circleInfo[1]))
+            if (float.IsInfinity(circleInfo[1]))
                 return null;
             else
             { }
@@ -314,7 +385,7 @@ public class VoronoiCell : MonoBehaviour {
         /// <param name="ynow"></param>
         /// <param name="x"></param>
         /// <returns></returns>
-        public double GetParabolaIntersect(double px, double py, double ynow, double x)
+        public float GetParabolaIntersect(float px, float py, float ynow, float x)
         {
             return (x * x - 2 * px * x + px * px + py * py - ynow * ynow) / (2 * (py - ynow));
         }
@@ -326,10 +397,10 @@ public class VoronoiCell : MonoBehaviour {
         /// <param name="p2"></param>
         /// <param name="p3"></param>
         /// <returns></returns>
-        public double[] GetCircle(Site p1, Site p2, Site p3)
+        public float[] GetCircle(Site p1, Site p2, Site p3)
         {
-            double[] result = new double[3];
-            double A, B, C, D, x, y, r;
+            float[] result = new float[3];
+            float A, B, C, D, x, y, r;
             A = p1.x * (p2.y - p3.y) - p1.y * (p2.x - p3.x) + p2.x * p3.y - p3.x * p2.y;
             B = (p1.x * p1.x + p1.y * p1.y) * (p3.y - p2.y) + (p2.x * p2.x + p2.y * p2.y) * (p1.y - p3.y)
                 + (p3.x * p3.x + p3.y * p3.y) * (p2.y - p1.y);
@@ -341,7 +412,7 @@ public class VoronoiCell : MonoBehaviour {
 
             x = -1 * B / (2 * A);
             y = -1 * C / (2 * A);
-            r = Math.Sqrt((B * B + C * C - 4 * A * D) / (4 * A * A));
+            r = Mathf.Sqrt((B * B + C * C - 4 * A * D) / (4 * A * A));
             result[0] = x;
             result[1] = y;
             result[2] = r;
@@ -413,478 +484,478 @@ public class VoronoiCell : MonoBehaviour {
 }
 
 public class Site
+{
+    // Type: 0=site, 1=voronoi point, 2=cell point, 3=boundary intersect point
+    public int type, index;
+    public float x, y;
+    public Site() { }
+
+    public Site(int type, int index, float x, float y)
     {
-        // Type: 0=site, 1=voronoi point, 2=cell point, 3=boundary intersect point
-        public int type, index;
-        public double x, y;
-        public Site() { }
-
-        public Site(int type, int index, double x, double y)
-        {
-            SetPoint(type, index, x, y);
-        }
-
-        public void SetPoint(int type, int index, double x, double y)
-        {
-            this.type = type;
-            this.index = index;
-            this.x = x;
-            this.y = y;
-        }
-
-        public double GetY()
-        {
-            return this.y;
-        }
-
-        public bool Equals(Site p)
-        {
-            if ((this.x == p.x || Math.Abs(this.x - p.x) < 0.000000001) &&
-                (this.y == p.y || Math.Abs(this.y - p.y) < 0.000000001))
-                return true;
-            return false;
-        }
-
-        public override string ToString()
-        {
-            return this.x + " " + this.y;
-        }
+        SetPoint(type, index, x, y);
     }
 
-    public class VoronoiVertexPoint : Site
+    public void SetPoint(int type, int index, float x, float y)
     {
-        public double radius;
-        public List<Site> relatedSites;
-        public VoronoiVertexPoint() { }
+        this.type = type;
+        this.index = index;
+        this.x = x;
+        this.y = y;
+    }
 
-        public VoronoiVertexPoint(int type, int index, double x, double y, double r, Site pi, Site pj, Site pk)
-        {
-            this.radius = r;
-            this.relatedSites = new List<Site>();
-            relatedSites.Add(pi);
-            relatedSites.Add(pj);
-            relatedSites.Add(pk);
-            SetPoint(type, index, x, y);
-        }
+    public float GetY()
+    {
+        return this.y;
+    }
 
-        public double GetY()
-        {
-            return this.y + this.radius;
-        }
-
-        /// <summary>
-        /// See if the target voronoi vertex has different related sites.
-        /// If so, add that site to its related sites and return true.
-        /// Else, return false.
-        /// </summary>
-        /// <param name="target">Target voronoi vertex.</param>
-        /// <returns></returns>
-        public bool OnSameCircle(VoronoiVertexPoint target)
-        {
-            // They are not the same point.
-            if (!this.Equals(target))
-                return false;
-
-            foreach (Site s2 in target.relatedSites)
-            {
-                bool appeared = false;
-                foreach (Site s in this.relatedSites)
-                    if (s.Equals(s2))
-                        appeared = true;
-                if (!appeared)
-                {
-                    this.relatedSites.Add(s2);
-                }
-            }
+    public bool Equals(Site p)
+    {
+        if ((this.x == p.x || Math.Abs(this.x - p.x) < 0.000000001) &&
+            (this.y == p.y || Math.Abs(this.y - p.y) < 0.000000001))
             return true;
-        }
+        return false;
+    }
 
-        public override string ToString()
+    public override string ToString()
+    {
+        return this.x + " " + this.y;
+    }
+}
+
+public class VoronoiVertexPoint : Site
+{
+    public float radius;
+    public List<Site> relatedSites;
+    public VoronoiVertexPoint() { }
+
+    public VoronoiVertexPoint(int type, int index, float x, float y, float r, Site pi, Site pj, Site pk)
+    {
+        this.radius = r;
+        this.relatedSites = new List<Site>();
+        relatedSites.Add(pi);
+        relatedSites.Add(pj);
+        relatedSites.Add(pk);
+        SetPoint(type, index, x, y);
+    }
+
+    public float GetY()
+    {
+        return this.y + this.radius;
+    }
+
+    /// <summary>
+    /// See if the target voronoi vertex has different related sites.
+    /// If so, add that site to its related sites and return true.
+    /// Else, return false.
+    /// </summary>
+    /// <param name="target">Target voronoi vertex.</param>
+    /// <returns></returns>
+    public bool OnSameCircle(VoronoiVertexPoint target)
+    {
+        // They are not the same point.
+        if (!this.Equals(target))
+            return false;
+
+        foreach (Site s2 in target.relatedSites)
         {
-            return this.x + " " + (this.y + this.radius);
+            bool appeared = false;
+            foreach (Site s in this.relatedSites)
+                if (s.Equals(s2))
+                    appeared = true;
+            if (!appeared)
+            {
+                this.relatedSites.Add(s2);
+            }
+        }
+        return true;
+    }
+
+    public override string ToString()
+    {
+        return this.x + " " + (this.y + this.radius);
+    }
+}
+
+public class Cell : Site
+{
+    int count;
+    public Dictionary<Site, int> neighbors;
+    public List<VoronoiVertexPoint> relatedVoronoiVertex;
+    public List<Edge> edges;
+
+    public Cell(int type, int index, float x, float y)
+    {
+        this.count = 0;
+        this.neighbors = new Dictionary<Site, int>();
+        this.relatedVoronoiVertex = new List<VoronoiVertexPoint>();
+        this.edges = new List<Edge>();
+        SetPoint(type, index, x, y);
+    }
+
+    public void AddVertex(VoronoiVertexPoint vvp)
+    {
+        count++;
+        this.relatedVoronoiVertex.Add(vvp);
+        foreach (Site s in vvp.relatedSites)
+        {
+            Edge newEdge = new Edge(this, s, vvp);
+            if (!this.neighbors.ContainsKey(s) && !s.Equals(this))
+            {
+                neighbors.Add(s, 1);
+                this.edges.Add(newEdge);
+            }
+            // Neighbor already exist
+            else if (this.neighbors.ContainsKey(s))
+            {
+                neighbors[s] = neighbors[s] + 1;
+                foreach (Edge e in this.edges)
+                    if (e.Equals(newEdge))
+                    {
+                        e.SetEnd(vvp);
+                        break;
+                    }
+            }
         }
     }
 
-    public class Cell : Site
+    /// <summary>
+    /// See if any edge of this cell is open ended, if so, bound it.
+    /// </summary>
+    public void HandleEdges(float boundaryHigh, float boundaryLow, float boundaryLeft, float boundaryRight)
     {
-        int count;
-        public Dictionary<Site, int> neighbors;
-        public List<VoronoiVertexPoint> relatedVoronoiVertex;
-        public List<Edge> edges;
-
-        public Cell(int type, int index, double x, double y)
+        float[] vector = new float[2];
+        float[] intersection = new float[2];
+        bool[] boundaryIntersect = new bool[4];
+        foreach (Edge e in this.edges)
         {
-            this.count = 0;
-            this.neighbors = new Dictionary<Site, int>();
-            this.relatedVoronoiVertex = new List<VoronoiVertexPoint>();
-            this.edges = new List<Edge>();
-            SetPoint(type, index, x, y);
-        }
-
-        public void AddVertex(VoronoiVertexPoint vvp)
-        {
-            count++;
-            this.relatedVoronoiVertex.Add(vvp);
-            foreach (Site s in vvp.relatedSites)
+            if (e.IsOpen())
             {
-                Edge newEdge = new Edge(this, s, vvp);
-                if (!this.neighbors.ContainsKey(s) && !s.Equals(this))
+                vector = e.GetEdgeVector();
+                if (vector[1] > 0)
                 {
-                    neighbors.Add(s, 1);
-                    this.edges.Add(newEdge);
+                    intersection = e.GetYaxisIntersection(boundaryHigh);
+                    if (intersection[0] > boundaryLeft && intersection[0] < boundaryRight)
+                    {
+                        SetEdgeEnd(e, intersection);
+                        boundaryIntersect[0] = true;
+                    }
                 }
-                // Neighbor already exist
-                else if (this.neighbors.ContainsKey(s))
+                else if (vector[1] < 0)
                 {
-                    neighbors[s] = neighbors[s] + 1;
-                    foreach (Edge e in this.edges)
-                        if (e.Equals(newEdge))
-                        {
-                            e.SetEnd(vvp);
-                            break;
-                        }
+                    intersection = e.GetYaxisIntersection(boundaryLow);
+                    if (intersection[0] > boundaryLeft && intersection[0] < boundaryRight)
+                    {
+                        SetEdgeEnd(e, intersection);
+                        boundaryIntersect[1] = true;
+                    }
                 }
-            }
-        }
-
-        /// <summary>
-        /// See if any edge of this cell is open ended, if so, bound it.
-        /// </summary>
-        public void HandleEdges(double boundaryHigh, double boundaryLow, double boundaryLeft, double boundaryRight)
-        {
-            double[] vector = new double[2];
-            double[] intersection = new double[2];
-            bool[] boundaryIntersect = new bool[4];
-            foreach (Edge e in this.edges)
-            {
-                if (e.IsOpen())
+                if (vector[0] < 0)
                 {
-                    vector = e.GetEdgeVector();
-                    if (vector[1] > 0)
+                    intersection = e.GetXaxisIntersection(boundaryLeft);
+                    if (intersection[1] > boundaryLow && intersection[1] < boundaryHigh)
                     {
-                        intersection = e.GetYaxisIntersection(boundaryHigh);
-                        if (intersection[0] > boundaryLeft && intersection[0] < boundaryRight)
-                        {
-                            SetEdgeEnd(e, intersection);
-                            boundaryIntersect[0] = true;
-                        }
+                        SetEdgeEnd(e, intersection);
+                        boundaryIntersect[2] = true;
                     }
-                    else if (vector[1] < 0)
+                }
+                else if (vector[0] > 0)
+                {
+                    intersection = e.GetXaxisIntersection(boundaryRight);
+                    if (intersection[1] > boundaryLow && intersection[1] < boundaryHigh)
                     {
-                        intersection = e.GetYaxisIntersection(boundaryLow);
-                        if (intersection[0] > boundaryLeft && intersection[0] < boundaryRight)
-                        {
-                            SetEdgeEnd(e, intersection);
-                            boundaryIntersect[1] = true;
-                        }
-                    }
-                    if (vector[0] < 0)
-                    {
-                        intersection = e.GetXaxisIntersection(boundaryLeft);
-                        if (intersection[1] > boundaryLow && intersection[1] < boundaryHigh)
-                        {
-                            SetEdgeEnd(e, intersection);
-                            boundaryIntersect[2] = true;
-                        }
-                    }
-                    else if (vector[0] > 0)
-                    {
-                        intersection = e.GetXaxisIntersection(boundaryRight);
-                        if (intersection[1] > boundaryLow && intersection[1] < boundaryHigh)
-                        {
-                            SetEdgeEnd(e, intersection);
-                            boundaryIntersect[3] = true;
-                        }
+                        SetEdgeEnd(e, intersection);
+                        boundaryIntersect[3] = true;
                     }
                 }
             }
-
-            // Assign the corner point to this cell.
-            if (boundaryIntersect[0] && boundaryIntersect[2])
-            {
-                VoronoiVertexPoint boundP = new VoronoiVertexPoint(3, count++, boundaryLeft,
-                    boundaryHigh, 0, this, null, null);
-                this.relatedVoronoiVertex.Add(boundP);
-            }
-            else if (boundaryIntersect[0] && boundaryIntersect[3])
-            {
-                VoronoiVertexPoint boundP = new VoronoiVertexPoint(3, count++, boundaryRight,
-                    boundaryHigh, 0, this, null, null);
-                this.relatedVoronoiVertex.Add(boundP);
-            }
-            else if (boundaryIntersect[1] && boundaryIntersect[2])
-            {
-                VoronoiVertexPoint boundP = new VoronoiVertexPoint(3, count++, boundaryLeft,
-                    boundaryLow, 0, this, null, null);
-                this.relatedVoronoiVertex.Add(boundP);
-            }
-            else if (boundaryIntersect[1] && boundaryIntersect[3])
-            {
-                VoronoiVertexPoint boundP = new VoronoiVertexPoint(3, count++, boundaryRight,
-                    boundaryLow, 0, this, null, null);
-                this.relatedVoronoiVertex.Add(boundP);
-            }
         }
 
-        public void SetEdgeEnd(Edge e, double[] boundaryIntersection)
+        // Assign the corner point to this cell.
+        if (boundaryIntersect[0] && boundaryIntersect[2])
         {
-            // Both start and end point of an edge are VVP.
-            VoronoiVertexPoint boundP = new VoronoiVertexPoint(3, count++, boundaryIntersection[0],
-                boundaryIntersection[1], 0, e.face1, e.face2, null);
-            e.SetEnd(boundP);
+            VoronoiVertexPoint boundP = new VoronoiVertexPoint(3, count++, boundaryLeft,
+                boundaryHigh, 0, this, null, null);
             this.relatedVoronoiVertex.Add(boundP);
         }
-
-        /// <summary>
-        /// This method should sort the related voronoi vertex this cell has,
-        /// into a clockwise order.
-        /// </summary>
-        public void Sort()
+        else if (boundaryIntersect[0] && boundaryIntersect[3])
         {
-            int size = this.relatedVoronoiVertex.Count;
-
-            // Compute and store the angle of every line.
-            double[] theta = new double[size];
-            for (int i = 0; i < size; i++)
-            {
-                theta[i] = Math.Atan2((this.relatedVoronoiVertex[i].y + this.relatedVoronoiVertex[i].radius) - this.y,
-                    this.relatedVoronoiVertex[i].x - this.x);
-                theta[i] = theta[i] * 180 / Math.PI;
-            }
-
-            // Sort by the angle.
-            List<VoronoiVertexPoint> sortedVVP = new List<VoronoiVertexPoint>();
-            for (int i = 0; i < size; i++)
-            {
-                int nextIndex = i;
-                double max = Double.MinValue;
-                for (int j = 0; j < size; j++)
-                {
-                    if (theta[j] > max)
-                    {
-                        nextIndex = j;
-                        max = theta[j];
-                    }
-                }
-                VoronoiVertexPoint nextPoint = this.relatedVoronoiVertex[nextIndex];
-                sortedVVP.Add(nextPoint);
-                theta[nextIndex] = Double.MinValue;
-            }
-
-            this.relatedVoronoiVertex = sortedVVP;
+            VoronoiVertexPoint boundP = new VoronoiVertexPoint(3, count++, boundaryRight,
+                boundaryHigh, 0, this, null, null);
+            this.relatedVoronoiVertex.Add(boundP);
         }
-
-        public override string ToString()
+        else if (boundaryIntersect[1] && boundaryIntersect[2])
         {
-            String result = "Cell " + this.index + " " + this.relatedVoronoiVertex.Count + "\n";
-            foreach (Site s in this.relatedVoronoiVertex)
-                result += s + "\n";
-            return result;
+            VoronoiVertexPoint boundP = new VoronoiVertexPoint(3, count++, boundaryLeft,
+                boundaryLow, 0, this, null, null);
+            this.relatedVoronoiVertex.Add(boundP);
+        }
+        else if (boundaryIntersect[1] && boundaryIntersect[3])
+        {
+            VoronoiVertexPoint boundP = new VoronoiVertexPoint(3, count++, boundaryRight,
+                boundaryLow, 0, this, null, null);
+            this.relatedVoronoiVertex.Add(boundP);
         }
     }
 
-    public class Edge
+    public void SetEdgeEnd(Edge e, float[] boundaryIntersection)
     {
-        public Site face1;
-        public Site face2;
-        VoronoiVertexPoint start;
-        VoronoiVertexPoint end;
+        // Both start and end point of an edge are VVP.
+        VoronoiVertexPoint boundP = new VoronoiVertexPoint(3, count++, boundaryIntersection[0],
+            boundaryIntersection[1], 0, e.face1, e.face2, null);
+        e.SetEnd(boundP);
+        this.relatedVoronoiVertex.Add(boundP);
+    }
 
-        public Edge(Site a, Site b, VoronoiVertexPoint vvp)
+    /// <summary>
+    /// This method should sort the related voronoi vertex this cell has,
+    /// into a clockwise order.
+    /// </summary>
+    public void Sort()
+    {
+        int size = this.relatedVoronoiVertex.Count;
+
+        // Compute and store the angle of every line.
+        float[] theta = new float[size];
+        for (int i = 0; i < size; i++)
         {
-            this.face1 = a;
-            this.face2 = b;
-            this.start = vvp;
-            this.end = null;
+            theta[i] = Mathf.Atan2((this.relatedVoronoiVertex[i].y + this.relatedVoronoiVertex[i].radius) - this.y,
+                this.relatedVoronoiVertex[i].x - this.x);
+            theta[i] = theta[i] * 180 / Mathf.PI;
         }
 
-        public bool Equals(Edge newEdge)
+        // Sort by the angle.
+        List<VoronoiVertexPoint> sortedVVP = new List<VoronoiVertexPoint>();
+        for (int i = 0; i < size; i++)
         {
-            if ((this.face1.Equals(newEdge.face1) && this.face2.Equals(newEdge.face2))
-                || (this.face1.Equals(newEdge.face2) && this.face2.Equals(newEdge.face1)))
-                return true;
-            return false;
-        }
-
-        public void SetEnd(VoronoiVertexPoint vvp)
-        {
-            this.end = vvp;
-        }
-
-        public double[] GetEdgeVector()
-        {
-            double[] result = new double[2];
-            double[] mid = GetMidPoint();
-            result[0] = mid[0] - this.start.x;
-            result[1] = mid[1] - (this.start.y + this.start.radius);
-            return result;
-        }
-
-        public double[] GetMidPoint()
-        {
-            double[] result = new double[2];
-            result[0] = (this.face1.x + this.face2.x) / 2;
-            result[1] = (this.face1.y + this.face2.y) / 2;
-            return result;
-        }
-
-        public bool IsOpen()
-        {
-            return (this.end == null);
-        }
-
-        /// <summary>
-        /// See if the point is on the right side of the line.
-        /// </summary>
-        /// <returns>True if the point is on the right side of the line.</returns>
-        public bool Orient(Site s)
-        {
-            double[] linepq = new double[2];
-            double[] linepr = new double[2];
-            double[] q = GetMidPoint();
-            linepq[0] = q[0] - this.start.x;
-            linepq[1] = q[1] - (this.start.y + this.start.radius);
-            linepr[0] = s.x - this.start.x;
-            linepr[1] = s.y - (this.start.y + this.start.radius);
-
-            double crossProduct = linepq[0] * linepr[1] - linepq[1] * linepr[0];
-            if (crossProduct <= 0)
-                return true;
-            return false;
-        }
-
-        public double[] GetYaxisIntersection(double y)
-        {
-            double[] result = new double[2];
-            double[] midpoint = GetMidPoint();
-            double a, b;    // y = ax+b.
-            if (midpoint[0] == this.start.x)
+            int nextIndex = i;
+            float max = float.MinValue;
+            for (int j = 0; j < size; j++)
             {
-                a = 1;
-                result[0] = this.start.x;
+                if (theta[j] > max)
+                {
+                    nextIndex = j;
+                    max = theta[j];
+                }
             }
-            else
-            {
-                a = (midpoint[1] - (this.start.y + this.start.radius)) / (midpoint[0] - this.start.x);
-                b = midpoint[1] - a * midpoint[0];
-                result[0] = (y - b) / a;
-            }
-
-            result[1] = y;
-            return result;
+            VoronoiVertexPoint nextPoint = this.relatedVoronoiVertex[nextIndex];
+            sortedVVP.Add(nextPoint);
+            theta[nextIndex] = float.MinValue;
         }
 
-        public double[] GetXaxisIntersection(double x)
+        this.relatedVoronoiVertex = sortedVVP;
+    }
+
+    public override string ToString()
+    {
+        String result = "Cell " + this.index + " " + this.relatedVoronoiVertex.Count + "\n";
+        foreach (Site s in this.relatedVoronoiVertex)
+            result += s + "\n";
+        return result;
+    }
+}
+
+public class Edge
+{
+    public Site face1;
+    public Site face2;
+    VoronoiVertexPoint start;
+    VoronoiVertexPoint end;
+
+    public Edge(Site a, Site b, VoronoiVertexPoint vvp)
+    {
+        this.face1 = a;
+        this.face2 = b;
+        this.start = vvp;
+        this.end = null;
+    }
+
+    public bool Equals(Edge newEdge)
+    {
+        if ((this.face1.Equals(newEdge.face1) && this.face2.Equals(newEdge.face2))
+            || (this.face1.Equals(newEdge.face2) && this.face2.Equals(newEdge.face1)))
+            return true;
+        return false;
+    }
+
+    public void SetEnd(VoronoiVertexPoint vvp)
+    {
+        this.end = vvp;
+    }
+
+    public float[] GetEdgeVector()
+    {
+        float[] result = new float[2];
+        float[] mid = GetMidPoint();
+        result[0] = mid[0] - this.start.x;
+        result[1] = mid[1] - (this.start.y + this.start.radius);
+        return result;
+    }
+
+    public float[] GetMidPoint()
+    {
+        float[] result = new float[2];
+        result[0] = (this.face1.x + this.face2.x) / 2;
+        result[1] = (this.face1.y + this.face2.y) / 2;
+        return result;
+    }
+
+    public bool IsOpen()
+    {
+        return (this.end == null);
+    }
+
+    /// <summary>
+    /// See if the point is on the right side of the line.
+    /// </summary>
+    /// <returns>True if the point is on the right side of the line.</returns>
+    public bool Orient(Site s)
+    {
+        float[] linepq = new float[2];
+        float[] linepr = new float[2];
+        float[] q = GetMidPoint();
+        linepq[0] = q[0] - this.start.x;
+        linepq[1] = q[1] - (this.start.y + this.start.radius);
+        linepr[0] = s.x - this.start.x;
+        linepr[1] = s.y - (this.start.y + this.start.radius);
+
+        float crossProduct = linepq[0] * linepr[1] - linepq[1] * linepr[0];
+        if (crossProduct <= 0)
+            return true;
+        return false;
+    }
+
+    public float[] GetYaxisIntersection(float y)
+    {
+        float[] result = new float[2];
+        float[] midpoint = GetMidPoint();
+        float a, b;    // y = ax+b.
+        if (midpoint[0] == this.start.x)
         {
-            double[] result = new double[2];
-            double[] midpoint = GetMidPoint();
-            double a, b;    // y = ax+b.
+            a = 1;
+            result[0] = this.start.x;
+        }
+        else
+        {
             a = (midpoint[1] - (this.start.y + this.start.radius)) / (midpoint[0] - this.start.x);
             b = midpoint[1] - a * midpoint[0];
-
-            result[0] = x;
-            result[1] = a * x + b;
-            return result;
+            result[0] = (y - b) / a;
         }
 
-        public override string ToString()
-        {
-            String result = "E(" + this.face1 + "-" + this.face2 + ")";
-            return result;
-        }
+        result[1] = y;
+        return result;
     }
 
-    public class EventQueue
+    public float[] GetXaxisIntersection(float x)
     {
-        private List<Site> list;
-        public int Count { get { return list.Count; } }
+        float[] result = new float[2];
+        float[] midpoint = GetMidPoint();
+        float a, b;    // y = ax+b.
+        a = (midpoint[1] - (this.start.y + this.start.radius)) / (midpoint[0] - this.start.x);
+        b = midpoint[1] - a * midpoint[0];
 
-        public EventQueue()
-        {
-            list = new List<Site>();
-        }
+        result[0] = x;
+        result[1] = a * x + b;
+        return result;
+    }
 
-        public EventQueue(int count)
-        {
-            list = new List<Site>(count);
-        }
+    public override string ToString()
+    {
+        String result = "E(" + this.face1 + "-" + this.face2 + ")";
+        return result;
+    }
+}
 
-        public void Enqueue(Site p)
-        {
-            list.Add(p);
-            list = list.OrderByDescending(points => points.y).ToList();
-        }
+public class EventQueue
+{
+    private List<Site> list;
+    public int Count { get { return list.Count; } }
 
-        public Site Dequeue()
-        {
-            Site maxP = Peek();
-            list.RemoveAt(0);
-            return maxP;
-        }
+    public EventQueue()
+    {
+        list = new List<Site>();
+    }
 
-        public void Remove(Site p)
-        {
-            if (p != null)
-            {
-                var itemToRemove = list.SingleOrDefault(r => (r.x == p.x && r.y == p.y));
-                if (itemToRemove != null)
-                    list.Remove(itemToRemove);
-            }
-        }
+    public EventQueue(int count)
+    {
+        list = new List<Site>(count);
+    }
 
-        /// <summary>
-        /// See if the target voronoi vertex already exist in the list.
-        /// </summary>
-        /// <param name="p"></param>
-        /// <returns></returns>
-        public bool IsDuplicate(VoronoiVertexPoint p)
+    public void Enqueue(Site p)
+    {
+        list.Add(p);
+        list = list.OrderByDescending(points => points.y).ToList();
+    }
+
+    public Site Dequeue()
+    {
+        Site maxP = Peek();
+        list.RemoveAt(0);
+        return maxP;
+    }
+
+    public void Remove(Site p)
+    {
+        if (p != null)
         {
             var itemToRemove = list.SingleOrDefault(r => (r.x == p.x && r.y == p.y));
-            if (itemToRemove == null || itemToRemove.type == 0)
-                return false;
-            VoronoiVertexPoint item = (VoronoiVertexPoint)itemToRemove;
-
-            // Same voronoi vertex.
-            if (item != null && item.OnSameCircle(p))
-                return true;
-            return false;
-        }
-
-        public Site Peek()
-        {
-            if (Count == 0) throw new InvalidOperationException("Queue is empty.");
-            return list.First();
-        }
-
-        public bool IsEmpty()
-        {
-            return Count == 0;
+            if (itemToRemove != null)
+                list.Remove(itemToRemove);
         }
     }
 
-    public class Node
+    /// <summary>
+    /// See if the target voronoi vertex already exist in the list.
+    /// </summary>
+    /// <param name="p"></param>
+    /// <returns></returns>
+    public bool IsDuplicate(VoronoiVertexPoint p)
     {
-        public Node Left;
-        public Node Right;
-        public Site s;
+        var itemToRemove = list.SingleOrDefault(r => (r.x == p.x && r.y == p.y));
+        if (itemToRemove == null || itemToRemove.type == 0)
+            return false;
+        VoronoiVertexPoint item = (VoronoiVertexPoint)itemToRemove;
 
-        public Node()
-        {
-            this.Left = null;
-            this.Right = null;
-            this.s = null;
-        }
-
-        public Node(Site s)
-        {
-            this.Left = null;
-            this.Right = null;
-            Set(s);
-        }
-
-        public void Set(Site s)
-        {
-            this.s = s;
-        }
+        // Same voronoi vertex.
+        if (item != null && item.OnSameCircle(p))
+            return true;
+        return false;
     }
+
+    public Site Peek()
+    {
+        if (Count == 0) throw new InvalidOperationException("Queue is empty.");
+        return list.First();
+    }
+
+    public bool IsEmpty()
+    {
+        return Count == 0;
+    }
+}
+
+public class Node
+{
+    public Node Left;
+    public Node Right;
+    public Site s;
+
+    public Node()
+    {
+        this.Left = null;
+        this.Right = null;
+        this.s = null;
+    }
+
+    public Node(Site s)
+    {
+        this.Left = null;
+        this.Right = null;
+        Set(s);
+    }
+
+    public void Set(Site s)
+    {
+        this.s = s;
+    }
+}
 
