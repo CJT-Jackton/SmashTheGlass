@@ -427,7 +427,7 @@ public class VoronoiCell : MonoBehaviour
                         p.AddRelatedSite(s);
                 }
                 p.Sort();
-                // Assign edge points to thos cells.
+                // Assign edge points to those cells one by one.
                 for (int i = 0; i < p.relatedSites.Count; i++)
                 {
                     int cellIndex1, cellIndex2;
@@ -475,11 +475,15 @@ public class VoronoiCell : MonoBehaviour
                 pj.Left.Right = pj.Right;
                 pj.Right.Left = pj.Left;
 
-                if (p.x == 0 && p.GetY() == 0)
+                if (p.relatedSites.Count > 3)
                     SpecialCase(p);
             }
         }
 
+        /// <summary>
+        /// This method removes extra sites from the beach line.
+        /// </summary>
+        /// <param name="p"></param>
         public void SpecialCase(VoronoiVertexPoint p)
         {
             Node current = head;
@@ -487,6 +491,7 @@ public class VoronoiCell : MonoBehaviour
                 current = current.Right;
             Node start = current;
 
+            // removes the upper half of the sites
             while (p.OnCircle(current.s) && p.OnCircle(current.Right.s))
             {
                 if ((current.Right.s.x < current.s.x)
@@ -562,73 +567,7 @@ public class Site
     /// This method should sort the list of surrounding sites in a clockwise order.
     /// The center is this site.
     /// </summary>
-    public List<Site> Sort(List<Site> list)
-    {
-        int size = list.Count;
 
-        // Compute and store the angle of every line.
-        float[] theta = new float[size];
-        for (int i = 0; i < size; i++)
-        {
-            theta[i] = Mathf.Atan2(list[i].GetY() - this.y, list[i].x - this.x);
-            theta[i] = theta[i] * 180f / Mathf.PI;
-        }
-
-        // Sort by the angle.
-        List<Site> sortedPoints = new List<Site>();
-        for (int i = 0; i < size; i++)
-        {
-            int nextIndex = i;
-            float max = float.MinValue;
-            for (int j = 0; j < size; j++)
-            {
-                if (theta[j] > max)
-                {
-                    nextIndex = j;
-                    max = theta[j];
-                }
-            }
-            Site nextPoint = list[nextIndex];
-            sortedPoints.Add(nextPoint);
-            theta[nextIndex] = float.MinValue;
-        }
-
-        return sortedPoints;
-    }
-
-    public List<VoronoiVertexPoint> Sort(List<VoronoiVertexPoint> list)
-    {
-        int size = list.Count;
-
-        // Compute and store the angle of every line.
-        float[] theta = new float[size];
-        for (int i = 0; i < size; i++)
-        {
-            theta[i] = Mathf.Atan2(list[i].GetY() - this.y, list[i].x - this.x);
-            theta[i] = theta[i] * 180 / Mathf.PI;
-        }
-
-        // Sort by the angle.
-        List<VoronoiVertexPoint> sortedPoints = new List<VoronoiVertexPoint>();
-        for (int i = 0; i < size; i++)
-        {
-            int nextIndex = i;
-            float max = float.MinValue;
-            for (int j = 0; j < size; j++)
-            {
-                if (theta[j] > max)
-                {
-                    nextIndex = j;
-                    max = theta[j];
-                }
-            }
-            VoronoiVertexPoint nextPoint = list[nextIndex];
-            sortedPoints.Add(nextPoint);
-            theta[nextIndex] = float.MinValue;
-        }
-
-        return sortedPoints;
-    }
 
     public override string ToString()
     {
@@ -722,7 +661,36 @@ public class VoronoiVertexPoint : Site
     /// </summary>
     public void Sort()
     {
-        this.relatedSites = base.Sort(this.relatedSites);
+        int size = this.relatedSites.Count;
+
+        // Compute and store the angle of every line.
+        float[] theta = new float[size];
+        for (int i = 0; i < size; i++)
+        {
+            theta[i] = Mathf.Atan2(this.relatedSites[i].GetY() - this.GetY(), this.relatedSites[i].x - this.x);
+            theta[i] = theta[i] * 180f / Mathf.PI;
+        }
+
+        // Sort by the angle.
+        List<Site> sortedPoints = new List<Site>();
+        for (int i = 0; i < size; i++)
+        {
+            int nextIndex = i;
+            float max = float.MinValue;
+            for (int j = 0; j < size; j++)
+            {
+                if (theta[j] > max)
+                {
+                    nextIndex = j;
+                    max = theta[j];
+                }
+            }
+            Site nextPoint = this.relatedSites[nextIndex];
+            sortedPoints.Add(nextPoint);
+            theta[nextIndex] = float.MinValue;
+        }
+
+        this.relatedSites = sortedPoints;
     }
 
     public override string ToString()
@@ -745,14 +713,14 @@ public class Cell : Site
         SetPoint(type, index, x, y);
     }
 
-    public void AddEdgePoint(VoronoiVertexPoint vvp, Site s)
+    public void AddEdgePoint(VoronoiVertexPoint vvp, Site neighbor)
     {
         // Do not add duplicate vvp in list.
         var itemToRemove = this.relatedVoronoiVertex.SingleOrDefault(r => (vvp.OnSamePoint(r)));
         if (itemToRemove == null)
             this.relatedVoronoiVertex.Add(vvp);
 
-        Edge newEdge = new Edge(this, s, vvp);
+        Edge newEdge = new Edge(this, neighbor, vvp);
         bool edgePointExist = false;
         foreach (Edge e in this.edges)
         {
@@ -835,7 +803,36 @@ public class Cell : Site
     /// </summary>
     public void Sort()
     {
-        this.relatedVoronoiVertex = base.Sort(this.relatedVoronoiVertex);
+        int size = this.relatedVoronoiVertex.Count;
+
+        // Compute and store the angle of every line.
+        float[] theta = new float[size];
+        for (int i = 0; i < size; i++)
+        {
+            theta[i] = Mathf.Atan2(this.relatedVoronoiVertex[i].GetY() - this.GetY(), this.relatedVoronoiVertex[i].x - this.x);
+            theta[i] = theta[i] * 180 / Mathf.PI;
+        }
+
+        // Sort by the angle.
+        List<VoronoiVertexPoint> sortedPoints = new List<VoronoiVertexPoint>();
+        for (int i = 0; i < size; i++)
+        {
+            int nextIndex = i;
+            float max = float.MinValue;
+            for (int j = 0; j < size; j++)
+            {
+                if (theta[j] > max)
+                {
+                    nextIndex = j;
+                    max = theta[j];
+                }
+            }
+            VoronoiVertexPoint nextPoint = this.relatedVoronoiVertex[nextIndex];
+            sortedPoints.Add(nextPoint);
+            theta[nextIndex] = float.MinValue;
+        }
+
+        this.relatedVoronoiVertex = sortedPoints;
     }
 
     public override string ToString()
@@ -985,7 +982,7 @@ public class Edge
         }
         else if(vector.x < 0 && vector.y > 0) 
         {
-            if(lowIntersect.x < left)
+            if(highIntersect.x < left)
                 return leftIntersect;
             return highIntersect;
         }
