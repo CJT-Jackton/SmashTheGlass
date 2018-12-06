@@ -50,9 +50,16 @@ public class VoronoiCell : MonoBehaviour
         while (!eq.IsEmpty())
         {
             Site eventP = eq.Dequeue();
+            VoronoiVertexPoint voronoiEventP;
+            float voronoiRealY = boundaryLow - 1;
+            if (eventP.GetType() == typeof(VoronoiVertexPoint))
+            {
+                voronoiEventP = (VoronoiVertexPoint) eventP;
+                voronoiRealY = voronoiEventP.GetY();
+            }
 
             float currentY = eventP.y;
-            if (currentY <= boundaryLow)
+            if (currentY <= boundaryLow && voronoiRealY < boundaryLow)
             {
                 //Debug.Log("Reach lower boundary. " + currentY);
                 break;
