@@ -590,7 +590,7 @@ public class VoronoiCell : MonoBehaviour
         }
 
         /// <summary>
-        /// This method removes extra sites from the beach line.
+        /// This method means multiple sites share a common voronoi vertex.
         /// </summary>
         /// <param name="p"></param>
         public void SpecialCase(VoronoiVertexPoint p)
@@ -604,11 +604,6 @@ public class VoronoiCell : MonoBehaviour
             Node start = current;
 
             // Related sites are already sorted in p.
-            //int relatedSitesIndex = p.relatedSites.Count - 1;
-            //// There might be a chance that start is not the bottom left site.
-            //if (!current.s.Equals(p.relatedSites[relatedSitesIndex]))
-            //    current = current.Right;
-
             int relatedSitesIndex = 0;
             while (!current.s.Equals(p.relatedSites[relatedSitesIndex]))
             {
@@ -776,7 +771,7 @@ public class VoronoiVertexPoint : Site
         float dist = (s.x - this.x) * (s.x - this.x) + (s.GetY() - this.GetY()) * (s.GetY() - this.GetY());
         dist = (float)System.Math.Round(Mathf.Sqrt(dist), 12);
         // Approximate in case of similar floating point.
-        if (dist == this.radius || Mathf.Approximately(dist, this.radius))
+        if (dist == this.radius || Mathf.Abs(dist - this.radius) < 0.0000001f)
             return true;
         return false;
     }
@@ -890,8 +885,47 @@ public class Cell : Site
     /// </summary>
     public void HandleEdges(float boundaryHigh, float boundaryLow, float boundaryLeft, float boundaryRight)
     {
+        List<VoronoiVertexPoint> inRangeRelatedVoronoiVertex = new List<VoronoiVertexPoint>();
+        List<Edge> inRangeEdges = new List<Edge>();
         bool[] boundaryIntersect = new bool[4];
         Vector2 boundaryPoint;
+
+        // See if the cell is inside the boundary
+        if (this.x < boundaryLeft || this.x > boundaryRight  || this.GetY() < boundaryLow || this.GetY() > boundaryHigh ) 
+        {
+            this.count = 0;
+            this.relatedVoronoiVertex = new List<VoronoiVertexPoint>();
+            this.edges = new List<Edge>();
+            return;
+        }
+
+        // See If the edges are outside or not.
+        foreach (Edge e in this.edges)
+        { 
+            if (!e.IsOpen() && !e.start.WithinRange(boundaryHigh, boundaryLow, boundaryLeft, boundaryRight) &&
+                e.end.WithinRange(boundaryHigh, boundaryLow, boundaryLeft, boundaryRight) ) 
+            {
+                Edge newE = new Edge(e.face1, e.face2, e.end);
+                inRangeEdges.Add(newE);
+            }
+            else if (!e.IsOpen() && e.start.WithinRange(boundaryHigh, boundaryLow, boundaryLeft, boundaryRight) &&
+                !e.end.WithinRange(boundaryHigh, boundaryLow, boundaryLeft, boundaryRight)) 
+            {
+                e.end = null;
+                inRangeEdges.Add(e);
+            }
+            else if(e.IsOpen() && e.start.WithinRange(boundaryHigh, boundaryLow, boundaryLeft, boundaryRight))
+                inRangeEdges.Add(e);
+        }
+        this.edges = inRangeEdges;
+
+        // See if the voronoi vertex is out side or not.
+        foreach(VoronoiVertexPoint vvp in this.relatedVoronoiVertex) 
+        {
+            if(vvp.WithinRange(boundaryHigh, boundaryLow, boundaryLeft, boundaryRight))
+                inRangeRelatedVoronoiVertex.Add(vvp);
+        }
+        this.relatedVoronoiVertex = inRangeRelatedVoronoiVertex;
 
         foreach (Edge e in this.edges)
         {
