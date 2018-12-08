@@ -1,4 +1,4 @@
-﻿﻿using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -8,7 +8,7 @@ public class RandomPoint : MonoBehaviour
     public static uint RING_NUM = 4;
     public static uint RAY_NUM = 10;
 
-    private System.Random random = new System.Random(0);
+    private System.Random random = new System.Random(10);
 
     private float[] base_theta;
     private float[] base_radius;
@@ -58,18 +58,9 @@ public class RandomPoint : MonoBehaviour
         return new Vector2(r * Mathf.Cos(theta), r * Mathf.Sin(theta));
     }
 
-    public Vector2[] getRandomPoint()
+    public Vector2[] getRandomPoint(Vector2 center)
     {
         Vector2[] point = new Vector2[RING_NUM * RAY_NUM];
-
-        //for (uint i = 0; i < RING_NUM * RAY_NUM; ++i)
-        //{
-        //    float r = random.Nextfloat();
-        //    float theta = randomNormal(base_theta[random.Next() % RAY_NUM], 0.0001) * 360;
-
-        //    point[i] = new Point();
-        //    point[i].polarToCartesian(Math.Clamp(r, 0.0, 1.0), theta);
-        //}
 
         for (uint i = 0; i < RING_NUM; ++i)
         {
@@ -79,7 +70,7 @@ public class RandomPoint : MonoBehaviour
                 base_theta[j] += randomNormal(0.0f, 0.0001f * r);
                 float theta = base_theta[j] * 360;
 
-                point[i * RAY_NUM + j] = polarToCartesian(r, theta);
+                point[i * RAY_NUM + j] = polarToCartesian(r, theta) + center;
             }
         }
 

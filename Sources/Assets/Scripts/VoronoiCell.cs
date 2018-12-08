@@ -121,7 +121,16 @@ public class VoronoiCell : MonoBehaviour
                     // No intersection yet.
                     if (float.IsInfinity(parabola) && ymin == float.MaxValue)
                         target = current;
-                    if (parabola <= ymin)
+
+                    // Found the spit node. Choose wisely.
+                    if (parabola == ymin)
+                    {
+                        if (current.Left.s.x < newNode.s.x)
+                        {
+                            target = current;
+                        }
+                    }
+                    else if (parabola < ymin)
                     {
                         ymin = parabola;
                         target = current;
@@ -144,10 +153,13 @@ public class VoronoiCell : MonoBehaviour
                     ADDRight(target, newNode);
                 else if (ymin > boundaryHigh && s.x < target.s.x)
                     ADDLeft(target, newNode);
-                // If its a triangles bottom point, it will add to the left of target site.
-                /*else if (target.Left != null && GetParabolaIntersect(target.s.x, target.s.y, newNode.s.y, newNode.s.x) ==
-                    GetParabolaIntersect(target.Left.s.x, target.Left.s.y, newNode.s.y, newNode.s.x))
-                    ADDLeft(target, newNode);*/
+                // If its a triangle's bottom point, it should add to the left of target site.
+                else if (target.Left != null && GetParabolaIntersect(target.s.x, target.s.y, newNode.s.y, newNode.s.x) ==
+                    GetParabolaIntersect(target.Left.s.x, target.Left.s.y, newNode.s.y, newNode.s.x)) {
+                    //ADDLeft(target, newNode);
+                    Debug.Log("triangle's bottom point");
+                }
+                
                 else
                     SplitADD(target, newNode);
             }
@@ -259,7 +271,7 @@ public class VoronoiCell : MonoBehaviour
             if (tmpLeft != null)
                 CheckCircleEvent(tmpLeft.s, targetNode.s, newNode.s, true);
             if (tmpRight != null)
-                CheckCircleEvent(newNode.s, targetNode.s, tmpRight.s, true);
+                CheckCircleEvent(newNode.s, split.s, tmpRight.s, true);
         }
 
         /// <summary>
@@ -335,6 +347,7 @@ public class VoronoiCell : MonoBehaviour
                 }
 
                 // Remove pj.
+                Node tmpLeft = pj.Left;
                 pj.Left.Right = pj.Right;
                 pj.Right.Left = pj.Left;
 
@@ -466,7 +479,7 @@ public class VoronoiCell : MonoBehaviour
                 {
                     // move the x a bit to the right.
                     sitePara[i] = GetParabolaIntersect(leftSide[i].x, leftSide[i].y,
-                        circleInfo[1] - circleInfo[2] - 0.01f, circleInfo[0] + 0.1f);
+                        circleInfo[1] - circleInfo[2] - 0.00001f, circleInfo[0] + 0.1f);
                 }
                 int[] sortedIndex = GetParaSortedIndex(sitePara);
                 for (int i = 0; i < sortedIndex.Length; i++)
@@ -485,7 +498,7 @@ public class VoronoiCell : MonoBehaviour
                 {
                     // move the x a bit to the left.
                     sitePara[i] = GetParabolaIntersect(rightSide[i].x, rightSide[i].y,
-                        circleInfo[1] - circleInfo[2] - 0.01f, circleInfo[0] - 0.1f);
+                        circleInfo[1] - circleInfo[2] - 0.00001f, circleInfo[0] - 0.1f);
                 }
                 int[] sortedIndex = GetParaSortedIndex(sitePara);
                 for (int i = sortedIndex.Length - 1; i >= 0; i--)
@@ -583,27 +596,40 @@ public class VoronoiCell : MonoBehaviour
             }
             Node start = current;
 
-            // Removes the upper part of the sites and duplicate lower parts.
-            // Keep the first and last part of sites.
+            // Related sites are already sorted in p.
+            //int relatedSitesIndex = p.relatedSites.Count - 1;
+            //// There might be a chance that start is not the bottom left site.
+            //if (!current.s.Equals(p.relatedSites[relatedSitesIndex]))
+            //    current = current.Right;
+
+            int relatedSitesIndex = 0;
+            while (!current.s.Equals(p.relatedSites[relatedSitesIndex]))
+            {
+                relatedSitesIndex++;
+            }
+            int prevIndex = (relatedSitesIndex == 0) ? p.relatedSites.Count - 1 : relatedSitesIndex - 1;
+
             while (p.OnCircle(current.s) && p.OnCircle(current.Right.s))
             {
-                // The next node is the last of its kind.
-                if (current.Right.Right == null || !p.OnCircle(current.Right.Right.s))
-                    break;
-                if (current.Right.s.GetY() > p.GetY() ||
-                    ((current.Right.s.x < current.s.x) && current.Right.s.GetY() < p.GetY() &&
-                    current.s.GetY() < p.GetY()))
+                if (!current.Right.s.Equals(p.relatedSites[prevIndex]))
                 {
                     current.SkipNextNode();
                 }
                 else
+                {
                     current = current.Right;
+                    if (relatedSitesIndex == 0)
+                        relatedSitesIndex = p.relatedSites.Count - 1;
+                    else
+                        relatedSitesIndex -= 1;
+                    prevIndex = (relatedSitesIndex == 0) ? p.relatedSites.Count - 1 : relatedSitesIndex - 1;
+                }
             }
 
             if (start.Left != null)
                 CheckCircleEvent(start.Left.s, start.s, start.Right.s, true);
-            if (current.Right.Right != null)
-                CheckCircleEvent(current.s, current.Right.s, current.Right.Right.s, true);
+            if (current.Right != null)
+                CheckCircleEvent(current.Left.s, current.s, current.Right.s, true);
         }
 
         public bool IsEmpty()
@@ -750,6 +776,8 @@ public class VoronoiVertexPoint : Site
 
     public bool InSideCircle(Site s)
     {
+        if (s.Equals(this.pi) || s.Equals(this.pj) || s.Equals(this.pk))
+            return false;
         Vector2 thisVector = new Vector2(this.x, this.GetY());
         Vector2 otherSite = new Vector2(s.x, s.GetY());
         float dist = Vector2.Distance(thisVector, otherSite);

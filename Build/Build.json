@@ -1,6 +1,6 @@
 {
 "companyName": "DefaultCompany",
-"productName": "Smash The Glass",
+"productName": "SmashTheGlass",
 "dataUrl": "Build.data.unityweb",
 "wasmCodeUrl": "Build.wasm.code.unityweb",
 "wasmFrameworkUrl": "Build.wasm.framework.unityweb",
