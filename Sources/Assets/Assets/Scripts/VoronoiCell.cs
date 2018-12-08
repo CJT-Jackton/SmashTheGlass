@@ -9,24 +9,21 @@ using System.IO;
 public class VoronoiCell : MonoBehaviour
 {
     static EventQueue eq = new EventQueue();
-    static BeachLine BL = new BeachLine();
-    static float boundaryLow, boundaryHigh, boundaryLeft, boundaryRight;
-    static Cell[] allCells;
-    static int count = 0;
-    static List<VoronoiVertexPoint> voronoiVertex = new List<VoronoiVertexPoint>();
 
     public Vector2[][] GenerateVoronoi(Vector2[] points)
     {
-        boundaryLow = -1;
-        boundaryHigh = 1;
-        boundaryLeft = -1;
-        boundaryRight = 1;
-        int numberOfCell = points.Length;
+        eq.ClearAll();
+        Cell[] allCells;
+
+        float boundaryLow = -1;
+        float boundaryHigh = 1;
+        float boundaryLeft = -1;
+        float boundaryRight = 1;
 
         // Read input points.
-        allCells = new Cell[numberOfCell];
+        allCells = new Cell[points.Length];
 
-        for (int i = 0; i < numberOfCell; i++)
+        for (int i = 0; i < points.Length; i++)
         {
             float x = points[i].x;
             float y = points[i].y;
@@ -34,6 +31,7 @@ public class VoronoiCell : MonoBehaviour
             eq.Enqueue(newSite);
             allCells[i] = new Cell(2, i, x, y);
         }
+        BeachLine BL = new BeachLine(boundaryHigh, boundaryLow, boundaryLeft, boundaryRight, allCells);
 
         float lastY = float.MaxValue;
         while (!eq.IsEmpty())
@@ -66,9 +64,9 @@ public class VoronoiCell : MonoBehaviour
             lastY = currentY;
         }
 
-        Vector2[][] OutputPoints = new Vector2[numberOfCell][];
+        Vector2[][] OutputPoints = new Vector2[points.Length][];
 
-        for (uint i = 0; i < numberOfCell; ++i)
+        for (uint i = 0; i < points.Length; ++i)
         {
             Cell cell = allCells[i];
             cell.HandleEdges(boundaryHigh, boundaryLow, boundaryLeft, boundaryRight);
@@ -87,10 +85,20 @@ public class VoronoiCell : MonoBehaviour
     public class BeachLine
     {
         public Node head;
+        float boundaryLow, boundaryHigh, boundaryLeft, boundaryRight;
+        Cell[] allCells;
+        List<VoronoiVertexPoint> voronoiVertex = new List<VoronoiVertexPoint>();
+        int count;
 
-        public BeachLine()
+        public BeachLine(float high, float low, float left, float right, Cell[] Cells)
         {
+            this.boundaryHigh = high;
+            this.boundaryLow = low;
+            this.boundaryLeft = left;
+            this.boundaryRight = right;
+            this.allCells = Cells;
             head = null;
+            count = 0;
         }
 
         /// <summary>
@@ -347,7 +355,6 @@ public class VoronoiCell : MonoBehaviour
                 }
 
                 // Remove pj.
-                Node tmpLeft = pj.Left;
                 pj.Left.Right = pj.Right;
                 pj.Right.Left = pj.Left;
 
@@ -622,7 +629,7 @@ public class VoronoiCell : MonoBehaviour
                         relatedSitesIndex = p.relatedSites.Count - 1;
                     else
                         relatedSitesIndex -= 1;
-                    prevIndex = relatedSitesIndex - 1;
+                    prevIndex = (relatedSitesIndex == 0) ? p.relatedSites.Count - 1 : relatedSitesIndex - 1;
                 }
             }
 
@@ -989,6 +996,8 @@ public class Cell : Site
     public void Sort()
     {
         int size = this.relatedVoronoiVertex.Count;
+        if (size == 0)
+            return;
 
         // Compute and store the angle of every line.
         float[] theta = new float[size];
@@ -1025,8 +1034,8 @@ public class Edge
 {
     public Site face1;
     public Site face2;
-    VoronoiVertexPoint start;
-    VoronoiVertexPoint end;
+    public VoronoiVertexPoint start;
+    public VoronoiVertexPoint end;
 
     public Edge(Site a, Site b, VoronoiVertexPoint vvp)
     {
@@ -1179,11 +1188,6 @@ public class EventQueue
         list = new List<Site>();
     }
 
-    public EventQueue(int count)
-    {
-        list = new List<Site>(count);
-    }
-
     public void Enqueue(Site p)
     {
         list.Add(p);
@@ -1238,6 +1242,10 @@ public class EventQueue
     public bool IsEmpty()
     {
         return Count == 0;
+    }
+    public void ClearAll() 
+    {
+        this.list = new List<Site>();
     }
 }
 
