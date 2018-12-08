@@ -121,7 +121,16 @@ public class VoronoiCell : MonoBehaviour
                     // No intersection yet.
                     if (float.IsInfinity(parabola) && ymin == float.MaxValue)
                         target = current;
-                    if (parabola <= ymin)
+
+                    // Found the spit node. Choose wisely.
+                    if (parabola == ymin)
+                    {
+                        if (current.Left.s.x < newNode.s.x)
+                        {
+                            target = current;
+                        }
+                    }
+                    else if (parabola < ymin)
                     {
                         ymin = parabola;
                         target = current;
@@ -583,27 +592,29 @@ public class VoronoiCell : MonoBehaviour
             }
             Node start = current;
 
-            // Removes the upper part of the sites and duplicate lower parts.
-            // Keep the first and last part of sites.
+            // Related sites are already sorted in p.
+            int relatedSitesIndex = p.relatedSites.Count - 1;
+            // There might be a chance that start is not the bottom left site.
+            if (!current.s.Equals(p.relatedSites[relatedSitesIndex]))
+                current = current.Right;
+
             while (p.OnCircle(current.s) && p.OnCircle(current.Right.s))
             {
-                // The next node is the last of its kind.
-                if (current.Right.Right == null || !p.OnCircle(current.Right.Right.s))
-                    break;
-                if (current.Right.s.GetY() > p.GetY() ||
-                    ((current.Right.s.x < current.s.x) && current.Right.s.GetY() < p.GetY() &&
-                    current.s.GetY() < p.GetY()))
+                if (!current.Right.s.Equals(p.relatedSites[relatedSitesIndex-1]))
                 {
                     current.SkipNextNode();
                 }
                 else
+                {
                     current = current.Right;
+                    relatedSitesIndex -= 1;
+                }
             }
 
             if (start.Left != null)
                 CheckCircleEvent(start.Left.s, start.s, start.Right.s, true);
-            if (current.Right.Right != null)
-                CheckCircleEvent(current.s, current.Right.s, current.Right.Right.s, true);
+            if (current.Right != null)
+                CheckCircleEvent(current.Left.s, current.s, current.Right.s, true);
         }
 
         public bool IsEmpty()

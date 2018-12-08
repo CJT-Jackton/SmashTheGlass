@@ -8,10 +8,7 @@ public class RandomPoint : MonoBehaviour
     public static uint RING_NUM = 4;
     public static uint RAY_NUM = 10;
 
-    public float inner_radius = 0.25f;
-    public uint inner_point_num = 10;
-
-    private System.Random random = new System.Random(0);
+    private System.Random random = new System.Random(5);
 
     private float[] base_theta;
     private float[] base_radius;
@@ -29,7 +26,7 @@ public class RandomPoint : MonoBehaviour
         }
 
         base_radius = new float[RING_NUM + 1];
-        base_radius[0] = inner_radius;
+        base_radius[0] = 0.0f;
 
         float centrifugation = 0.5f;
         float sum = 0.0f;
@@ -63,7 +60,16 @@ public class RandomPoint : MonoBehaviour
 
     public Vector2[] getRandomPoint()
     {
-        Vector2[] point = new Vector2[RING_NUM * RAY_NUM + inner_point_num];
+        Vector2[] point = new Vector2[RING_NUM * RAY_NUM];
+
+        //for (uint i = 0; i < RING_NUM * RAY_NUM; ++i)
+        //{
+        //    float r = random.Nextfloat();
+        //    float theta = randomNormal(base_theta[random.Next() % RAY_NUM], 0.0001) * 360;
+
+        //    point[i] = new Point();
+        //    point[i].polarToCartesian(Math.Clamp(r, 0.0, 1.0), theta);
+        //}
 
         for (uint i = 0; i < RING_NUM; ++i)
         {
@@ -75,15 +81,6 @@ public class RandomPoint : MonoBehaviour
 
                 point[i * RAY_NUM + j] = polarToCartesian(r, theta);
             }
-        }
-
-        for(uint i = 0; i < inner_point_num; ++i)
-        {
-            //float r = (float)random.NextDouble() * inner_radius * 0.75f;
-            //float theta = (float)random.NextDouble() * 360f;
-
-            //point[RING_NUM * RAY_NUM + i] = polarToCartesian(r, theta);
-            point[RING_NUM * RAY_NUM + i] = UnityEngine.Random.insideUnitCircle * inner_radius;
         }
 
         return point;
