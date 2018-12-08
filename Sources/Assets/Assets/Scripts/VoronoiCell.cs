@@ -776,6 +776,8 @@ public class VoronoiVertexPoint : Site
 
     public bool InSideCircle(Site s)
     {
+        if (s.Equals(this.pi) || s.Equals(this.pj) || s.Equals(this.pk))
+            return false;
         Vector2 thisVector = new Vector2(this.x, this.GetY());
         Vector2 otherSite = new Vector2(s.x, s.GetY());
         float dist = Vector2.Distance(thisVector, otherSite);
