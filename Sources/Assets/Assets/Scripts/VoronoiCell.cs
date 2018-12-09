@@ -46,13 +46,6 @@ public class VoronoiCell : MonoBehaviour
             }
 
             float currentY = eventP.y;
-            if (currentY <= boundaryLow && voronoiRealY < boundaryLow)
-                break;
-            if (currentY > lastY && !Mathf.Approximately(currentY, lastY)) // approximately in case 0.2 > 0.2.
-            {
-                //Debug.Log("Earlier event."+ currentY+" > "+ lastY);
-                continue;
-            }
 
             if (eventP.type == 0)
             {
@@ -282,6 +275,13 @@ public class VoronoiCell : MonoBehaviour
                 CheckCircleEvent(newNode.s, split.s, tmpRight.s, true);
         }
 
+        public bool breakPoint(VoronoiVertexPoint p)
+        {
+            if(p.pi.index < 10 &&p.pj.index < 10 && p.pk.index < 10)
+                return true;
+            return false;
+        }
+
         /// <summary>
         /// Bisector (pi, pj) and (pj, pk) have met, a single bisector (pi, pk) remains.
         /// </summary>
@@ -292,47 +292,43 @@ public class VoronoiCell : MonoBehaviour
             foreach (Site s in allCells)
                 if (p.InSideCircle(s))
                     return;
+            if (breakPoint( p)) 
+                {Debug.Log("asd"); }
+
+            // Find where pj is.
+            Node pj = head.Right;
+            while (pj.Left != null && pj != null && pj.Right != null
+                && (!pj.Left.s.Equals(p.pi)
+                || !pj.s.Equals(p.pj)
+                || !pj.Right.s.Equals(p.pk)))
+            {
+                pj = pj.Right;
+            }
 
             // If the voronoi vertex already exist, do not do anything.
             var sameItem = voronoiVertex.SingleOrDefault(r => (p.OnSamePoint(r)));
             if (sameItem == null)
             {
-                // If the voronoi vertex is out of range, do not add it as cell's edge point.
-                // Erase it from beach line nonetheless.
-                if (p.WithinRange(boundaryHigh, boundaryLow, boundaryLeft, boundaryRight))
+                voronoiVertex.Add(p);
+                // Take every site in the same circle and add them to voronoi vertex's related sites.
+                foreach (Site s in allCells)
                 {
-                    voronoiVertex.Add(p);
-                    // Take every site in the same circle and add them to voronoi vertex's related sites.
-                    foreach (Site s in allCells)
-                    {
-                        if (p.OnSameCircle(s))
-                            p.AddRelatedSite(s);
-                    }
-                    p.Sort();
-                    // Assign edge points to those cells one by one.
-                    for (int i = 0; i < p.relatedSites.Count; i++)
-                    {
-                        int cellIndex1, cellIndex2;
-                        cellIndex1 = p.relatedSites[i].index;
-                        if (i != p.relatedSites.Count - 1)
-                            cellIndex2 = p.relatedSites[i + 1].index;
-                        else
-                            cellIndex2 = p.relatedSites[0].index;
-
-                        allCells[cellIndex1].AddEdgePoint(p, allCells[cellIndex2]);
-                        allCells[cellIndex2].AddEdgePoint(p, allCells[cellIndex1]);
-                    }
-                    eq.RemoveAll(p);
+                    if (p.OnSameCircle(s))
+                        p.AddRelatedSite(s);
                 }
-
-                // Find where pj is.
-                Node pj = head.Right;
-                while (pj.Left != null && pj != null && pj.Right != null
-                    && (!pj.Left.s.Equals(p.pi)
-                    || !pj.s.Equals(p.pj)
-                    || !pj.Right.s.Equals(p.pk)))
+                p.Sort();
+                // Assign edge points to those cells one by one.
+                for (int i = 0; i < p.relatedSites.Count; i++)
                 {
-                    pj = pj.Right;
+                    int cellIndex1, cellIndex2;
+                    cellIndex1 = p.relatedSites[i].index;
+                    if (i != p.relatedSites.Count - 1)
+                        cellIndex2 = p.relatedSites[i + 1].index;
+                    else
+                        cellIndex2 = p.relatedSites[0].index;
+
+                    allCells[cellIndex1].AddEdgePoint(p, allCells[cellIndex2]);
+                    allCells[cellIndex2].AddEdgePoint(p, allCells[cellIndex1]);
                 }
 
                 // Affected bisectors need to be cleaned.
@@ -358,9 +354,14 @@ public class VoronoiCell : MonoBehaviour
                 pj.Left.Right = pj.Right;
                 pj.Right.Left = pj.Left;
 
-                if (p.relatedSites.Count > 3)
-                    SpecialCase(p);
             }
+            else 
+            {
+                Debug.Log("asd");
+            }
+
+            if (p.relatedSites.Count > 3)
+                SpecialCase(p);
         }
 
         /// <summary>
@@ -440,9 +441,9 @@ public class VoronoiCell : MonoBehaviour
             x = -1 * B / (2 * A);
             y = -1 * C / (2 * A);
             r = Mathf.Sqrt((B * B + C * C - 4 * A * D) / (4 * A * A));
-            result[0] = (float)System.Math.Round((double)x, 12);
-            result[1] = (float)System.Math.Round((double)y, 12);
-            result[2] = (float)System.Math.Round((double)r, 12);
+            result[0] = (float)Math.Round((double)x, 12);
+            result[1] = (float)Math.Round((double)y, 12);
+            result[2] = (float)Math.Round((double)r, 12);
 
             return result;
         }
@@ -525,25 +526,6 @@ public class VoronoiCell : MonoBehaviour
                 result[left + j] = sortedRightSide[j];
             }
     
-            // Sort byy value.
-            //if (p1.GetY() >= p2.GetY() && p1.GetY() >= p3.GetY())
-            //{
-            //    result[0] = p1;
-            //    result[1] = (p2.GetY() > p3.GetY()) ? p2 : p3;
-            //    result[2] = (p2.GetY() > p3.GetY()) ? p3 : p2;
-            //}
-            //else if (p2.GetY() >= p1.GetY() && p2.GetY() >= p3.GetY())
-            //{
-            //    result[0] = p2;
-            //    result[1] = (p1.GetY() > p3.GetY()) ? p1 : p3;
-            //    result[2] = (p1.GetY() > p3.GetY()) ? p3 : p1;
-            //}
-            //else if (p3.GetY() >= p1.GetY() && p3.GetY() >= p2.GetY())
-            //{
-            //    result[0] = p3;
-            //    result[1] = (p1.GetY() > p2.GetY()) ? p1 : p2;
-            //    result[2] = (p1.GetY() > p2.GetY()) ? p2 : p1;
-            //}
             return result;
         }
 
@@ -590,7 +572,7 @@ public class VoronoiCell : MonoBehaviour
         }
 
         /// <summary>
-        /// This method means multiple sites share a common voronoi vertex.
+        /// Multiple sites share a common voronoi vertex.
         /// </summary>
         /// <param name="p"></param>
         public void SpecialCase(VoronoiVertexPoint p)
@@ -628,9 +610,10 @@ public class VoronoiCell : MonoBehaviour
                 }
             }
 
+            // Add affected event.
             if (start.Left != null)
                 CheckCircleEvent(start.Left.s, start.s, start.Right.s, true);
-            if (current.Right != null)
+            if (current.Right != null )
                 CheckCircleEvent(current.Left.s, current.s, current.Right.s, true);
         }
 
@@ -902,7 +885,12 @@ public class Cell : Site
         // See If the edges are outside or not.
         foreach (Edge e in this.edges)
         { 
-            if (!e.IsOpen() && !e.start.WithinRange(boundaryHigh, boundaryLow, boundaryLeft, boundaryRight) &&
+            if (!e.IsOpen() && e.start.WithinRange(boundaryHigh, boundaryLow, boundaryLeft, boundaryRight) &&
+                e.end.WithinRange(boundaryHigh, boundaryLow, boundaryLeft, boundaryRight) ) 
+            {
+                inRangeEdges.Add(e);
+            }
+            else if (!e.IsOpen() && !e.start.WithinRange(boundaryHigh, boundaryLow, boundaryLeft, boundaryRight) &&
                 e.end.WithinRange(boundaryHigh, boundaryLow, boundaryLeft, boundaryRight) ) 
             {
                 Edge newE = new Edge(e.face1, e.face2, e.end);
@@ -1239,9 +1227,10 @@ public class EventQueue
     {
         if (vvp != null)
         {
-            var itemToRemove = list.SingleOrDefault(r => (vvp.Equals(r)));
-            if (itemToRemove != null)
-                list.Remove(itemToRemove);
+            list.Remove(vvp);
+            //var itemToRemove = list.SingleOrDefault(r => (vvp.Equals(r)));
+            //if (itemToRemove != null)
+            //    list.Remove(itemToRemove);
         }
     }
 
