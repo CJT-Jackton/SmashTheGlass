@@ -49,12 +49,15 @@ public class VoronoiCell : MonoBehaviour
 
             if (eventP.type == 0)
             {
+                if (eventP.index == 7)
+                { Debug.Log(""); }
                 BL.Insert(eventP);
             }
             else if (eventP.type == 1)
                 BL.HandleVVEvent((VoronoiVertexPoint)eventP);
 
             lastY = currentY;
+            BL.Print();
         }
 
         Vector2[][] OutputPoints = new Vector2[points.Length][];
@@ -117,7 +120,7 @@ public class VoronoiCell : MonoBehaviour
                 Node current = head;
                 if (s.index == 3)
                     findRight = false;
-                // Iterate until the node is on the new Site's right.
+                // Iterate until the end.
                 while (current != null)
                 {
                     parabola = GetParabolaIntersect(current.s.x, current.s.y, newNode.s.y, newNode.s.x);
@@ -139,16 +142,16 @@ public class VoronoiCell : MonoBehaviour
                         target = current;
                     }
 
-                    if (current.s.x > newNode.s.x)
-                        findRight = true;
-                    else
-                        findRight = false;
-                    float dist = current.s.x - newNode.s.x;
-                    // The last node is the closest one.
-                    if (findRight && dist > findRightDist)
-                        break;
-                    if (findRight)
-                        findRightDist = dist;
+                    //if (current.s.x > newNode.s.x)
+                    //    findRight = true;
+                    //else
+                    //    findRight = false;
+                    //float dist = current.s.x - newNode.s.x;
+                    //// The last node is the closest one.
+                    //if (findRight && dist > findRightDist)
+                    //    break;
+                    //if (findRight)
+                    //    findRightDist = dist;
 
                     current = current.Right;
                 }
@@ -278,12 +281,7 @@ public class VoronoiCell : MonoBehaviour
                 CheckCircleEvent(newNode.s, split.s, tmpRight.s, true);
         }
 
-        public bool breakPoint(VoronoiVertexPoint p)
-        {
-            if (p.pi.index < 10 && p.pj.index < 10 && p.pk.index < 10)
-                return true;
-            return false;
-        }
+        
 
         /// <summary>
         /// Bisector (pi, pj) and (pj, pk) have met, a single bisector (pi, pk) remains.
@@ -291,12 +289,12 @@ public class VoronoiCell : MonoBehaviour
         /// <param name="p"></param>
         public void HandleVVEvent(VoronoiVertexPoint p)
         {
+            if (p.breakPoint( 7, 10, 0))
+            { Debug.Log("asd"); }
             // This voronoi vertex circle contains other site.
             foreach (Site s in allCells)
                 if (p.InSideCircle(s))
                     return;
-            if (breakPoint(p))
-            { Debug.Log("asd"); }
 
             // Find where pj is.
             Node pj = head.Right;
@@ -379,7 +377,10 @@ public class VoronoiCell : MonoBehaviour
             VoronoiVertexPoint vvp = GetVoronoiVertexEvent(pi, pj, pk);
             if (vvp == null)
                 return;
-
+            
+            
+            if (vvp.breakPoint(7, 10, 0))
+            { Debug.Log("asd"); }
             vvp.RearrangeSites();
             if (pi.Equals(vvp.pi) && pj.Equals(vvp.pj) && pk.Equals(vvp.pk))
             {
@@ -402,11 +403,8 @@ public class VoronoiCell : MonoBehaviour
             if (pi.Equals(pk))
                 return null;
             float[] circleInfo = new float[3];
-            // The order of three sites will affect the result.
+            // The order of three sites might affect the result.
             //Site[] newSites = RearrangeSites(pi, pj, pk);
-            //circleInfo = GetCircle(newSites[0], newSites[1], newSites[2]);
-            //VoronoiVertexPoint lowestP = new VoronoiVertexPoint(1, count++, circleInfo[0],
-            //    circleInfo[1] - circleInfo[2], circleInfo[2], newSites[0], newSites[1], newSites[2]);
 
             circleInfo = GetCircle(pi, pj, pk);
             VoronoiVertexPoint vvp = new VoronoiVertexPoint(1, count++, circleInfo[0],
@@ -469,6 +467,7 @@ public class VoronoiCell : MonoBehaviour
         /// <param name="p"></param>
         public void SpecialCase(VoronoiVertexPoint p)
         {
+            Debug.Log("vvp"+p.x+","+p.GetY());
             Node current = this.head;
             // Find where to start in the beach line.
             while (!p.OnCircle(current.s) || !p.OnCircle(current.Right.s))
@@ -511,6 +510,18 @@ public class VoronoiCell : MonoBehaviour
             if (head == null)
                 return true;
             return false;
+        }
+
+        public void Print()
+        {
+            Node current = this.head;
+            String status = "";
+            while (current != null)
+            {
+                status = status + current.s.index + "-";
+                current = current.Right;
+            }
+            Debug.Log(status);
         }
     }
 }
@@ -853,6 +864,18 @@ public class VoronoiVertexPoint : Site
             return true;
         return false;
     }
+
+    public bool breakPoint(int i, int j, int k)
+    {
+        if ((this.pi.index == i && this.pj.index == j && this.pk.index == k) ||
+            (this.pi.index == i && this.pj.index == k && this.pk.index == j) ||
+            (this.pi.index == j && this.pj.index == i && this.pk.index == k) ||
+            (this.pi.index == j && this.pj.index == k && this.pk.index == i) ||
+            (this.pi.index == k && this.pj.index == i && this.pk.index == j) ||
+            (this.pi.index == k && this.pj.index == j && this.pk.index == i))
+            return true;
+        return false;
+    }
 }
 
 public class Cell : Site
@@ -901,15 +924,6 @@ public class Cell : Site
         List<Edge> inRangeEdges = new List<Edge>();
         bool[] boundaryIntersect = new bool[4];
         Vector2 boundaryPoint;
-
-        // See if the cell is inside the boundary
-        //if (this.x < boundaryLeft || this.x > boundaryRight || this.GetY() < boundaryLow || this.GetY() > boundaryHigh)
-        //{
-        //    this.count = 0;
-        //    this.relatedVoronoiVertex = new List<VoronoiVertexPoint>();
-        //    this.edges = new List<Edge>();
-        //    return;
-        //}
 
         // See If the edges are outside or not.
         foreach (Edge e in this.edges)
@@ -986,7 +1000,7 @@ public class Cell : Site
                 boundaryLow, 0, this, null, null);
             this.relatedVoronoiVertex.Add(boundP);
         }
-        // This cell covers maso of the area.
+        // This cell covers mast of the area.
         else if (boundaryIntersect[0] && boundaryIntersect[1])
         {
             if (this.x > (boundaryRight + boundaryLeft) / 2)
