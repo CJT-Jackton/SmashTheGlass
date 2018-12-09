@@ -10,7 +10,7 @@ public class VoronoiCell : MonoBehaviour
 {
     static EventQueue eq = new EventQueue();
 
-    public Vector2[][] GenerateVoronoi(Vector2[] points, Vector2 center)
+    public Vector2[][] GenerateVoronoi(Vector2[] points, Vector2 hitCenter)
     {
         eq.ClearAll();
         Cell[] allCells;
@@ -31,9 +31,8 @@ public class VoronoiCell : MonoBehaviour
             eq.Enqueue(newSite);
             allCells[i] = new Cell(2, i, x, y);
         }
-        BeachLine BL = new BeachLine(boundaryHigh, boundaryLow, boundaryLeft, boundaryRight, allCells, center);
+        BeachLine BL = new BeachLine(allCells, hitCenter);
 
-        float lastY = float.MaxValue;
         while (!eq.IsEmpty())
         {
             Site eventP = eq.Dequeue();
@@ -56,7 +55,6 @@ public class VoronoiCell : MonoBehaviour
             else if (eventP.type == 1)
                 BL.HandleVVEvent((VoronoiVertexPoint)eventP);
 
-            lastY = currentY;
             BL.Print();
         }
 
@@ -81,18 +79,13 @@ public class VoronoiCell : MonoBehaviour
     public class BeachLine
     {
         public Node head;
-        float boundaryLow, boundaryHigh, boundaryLeft, boundaryRight;
         Cell[] allCells;
         List<VoronoiVertexPoint> voronoiVertex = new List<VoronoiVertexPoint>();
         int count;
         Vector2 center;
 
-        public BeachLine(float high, float low, float left, float right, Cell[] Cells, Vector2 center)
+        public BeachLine(Cell[] Cells, Vector2 center)
         {
-            this.boundaryHigh = high;
-            this.boundaryLow = low;
-            this.boundaryLeft = left;
-            this.boundaryRight = right;
             this.allCells = Cells;
             head = null;
             count = 0;
@@ -142,34 +135,10 @@ public class VoronoiCell : MonoBehaviour
                         target = current;
                     }
 
-                    //if (current.s.x > newNode.s.x)
-                    //    findRight = true;
-                    //else
-                    //    findRight = false;
-                    //float dist = current.s.x - newNode.s.x;
-                    //// The last node is the closest one.
-                    //if (findRight && dist > findRightDist)
-                    //    break;
-                    //if (findRight)
-                    //    findRightDist = dist;
-
                     current = current.Right;
                 }
 
-                //if (ymin > boundaryHigh && s.x > target.s.x)
-                //    ADDRight(target, newNode);
-                //else if (ymin > boundaryHigh && s.x < target.s.x)
-                //    ADDLeft(target, newNode);
-                //// If its a triangle's bottom point, it should add to the left of target site.
-                //else if (target.Left != null && GetParabolaIntersect(target.s.x, target.s.y, newNode.s.y, newNode.s.x) ==
-                //    GetParabolaIntersect(target.Left.s.x, target.Left.s.y, newNode.s.y, newNode.s.x))
-                //{
-                //    //ADDLeft(target, newNode);
-                //    Debug.Log("triangle's bottom point");
-                //}
-
-                //else
-                    SplitADD(target, newNode);
+                SplitADD(target, newNode);
             }
         }
 
@@ -1271,9 +1240,6 @@ public class EventQueue
         if (vvp != null)
         {
             list.Remove(vvp);
-            //var itemToRemove = list.SingleOrDefault(r => (vvp.Equals(r)));
-            //if (itemToRemove != null)
-            //    list.Remove(itemToRemove);
         }
     }
 

@@ -42,44 +42,15 @@ public class Glass : MonoBehaviour
                 Vector2[] random = randomPoint.getRandomPoint();
                 Vector2[] test = new Vector2[30];
 
-                //test[0] = new Vector2(-0.538852060144569f, -0.393761943857741f);
-                //test[1] = new Vector2(-0.298433613285351f, 0.596948397781687f);
-                //test[2] = new Vector2(0.609526939477559f, 0.271821487752154f);
-                //test[3] = new Vector2(0.0472157853175322f, -0.665718169174856f);
-                //test[4] = new Vector2(-0.636301019554994f, -0.201323182137448f);
-                //test[5] = new Vector2(-0.0262855956431134f, 0.666872610484462f);
-                //test[6] = new Vector2(0.660706567821757f, -0.0942169962897742f);
-                //test[7] = new Vector2(-0.229822899995986f, -0.626571181742433f);
-                //test[8] = new Vector2(-0.604343329501412f, 0.283159233011782f);
-                //test[9] = new Vector2(0.23099975814383f, 0.626138261800192f);
-                //test[10] = new Vector2(-0.311882751510742f, -0.232998107871212f);
-                //test[11] = new Vector2(-0.178400117941457f, 0.346023650752301f);
-                //test[12] = new Vector2(0.361812246014974f, 0.143704097349643f);
-                //test[13] = new Vector2(0.0306095207505624f, -0.388100536202795f);
-                //test[14] = new Vector2(-0.370368991788815f, -0.119940730708181f);
-                //test[15] = new Vector2(-0.0235630831404277f, 0.388592009792267f);
-                //test[16] = new Vector2(0.387591409965953f, -0.0364947651325542f);
-                //test[17] = new Vector2(-0.127728549443157f, -0.36775587910817f);
-                //test[18] = new Vector2(-0.355483291734862f, 0.158715463200101f);
-                //test[19] = new Vector2(0.144114763887596f, 0.361648868090443f);
-                //test[20] = new Vector2(-0.131302106562233f, -0.102407306534168f);
-                //test[21] = new Vector2(-0.0770595755647677f, 0.147612063982051f);
-                //test[22] = new Vector2(0.15576812075878f, 0.0588539903026245f);
-                //test[23] = new Vector2(0.0149611508624001f, -0.165842285271687f);
-                //test[24] = new Vector2(-0.158514693653205f, -0.0509959950907295f);
-                //test[25] = new Vector2(-0.00953393248128895f, 0.166242605100815f);
-                //test[26] = new Vector2(0.165901894756666f, -0.0142849898638846f);
-                //test[27] = new Vector2(-0.0536191761237597f, -0.157646704916635f);
-                //test[28] = new Vector2(-0.151401277127068f, 0.0693192102057999f);
-                //test[29] = new Vector2(0.0614254439884864f, 0.154772137189097f);
-
                 for (int i = 0; i < 30; i++)
                 {
                     test[i] = random[i+10];
+                    test[i].x = test[i].x + 0.20001f;
+                    test[i].y = test[i].y + 0.10001f;
                 }
-                //test[16].x -= 0.1f;
+                Vector2 center = new Vector2(0.20001f, 0.10001f);
 
-                Vector2[][] pieces = voronoi.GenerateVoronoi(test);
+                Vector2[][] pieces = voronoi.GenerateVoronoi(test, center);
 
                 foreach (Vector2[] piece in pieces)
                 {
