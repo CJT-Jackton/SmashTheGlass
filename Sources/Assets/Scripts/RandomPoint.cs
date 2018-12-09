@@ -8,13 +8,16 @@ public class RandomPoint : MonoBehaviour
     public static uint RING_NUM = 4;
     public static uint RAY_NUM = 10;
 
-    private System.Random random = new System.Random(10);
+    private System.Random random = new System.Random();
 
     private float[] base_theta;
     private float[] base_radius;
 
     public RandomPoint()
     {
+        System.Random random = new System.Random(new DateTime().Millisecond);
+        //UnityEngine.Random.seed = new DateTime().Millisecond;
+
         base_theta = new float[RAY_NUM];
 
         float step = 1.0f / RAY_NUM;

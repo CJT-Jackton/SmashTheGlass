@@ -1,60 +1,33 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Smash : MonoBehaviour
 {
-    public float thrust = 100.0f;
+    public Slider slider;
+    public Text text;
 
-    private Rigidbody rigidbody;
+    Rigidbody rigidbody;
+    float MAX_THRUST = 1000.0f;
 
     private float normalDistribution(float x)
     {
-        float stdDev = 0.5f;
+        float stdDev = 0.25f;
         float mean = 0;
         return Mathf.Exp(-Mathf.Pow((x - mean), 2.0f) / (2.0f * stdDev * stdDev));
     }
 
-    //void Update()
-    //{
-    //    if (Input.GetMouseButtonDown(0))
-    //    {
-    //        RaycastHit hit;
-    //        var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+    void Start()
+    {
+        UpdateText();
+        slider.onValueChanged.AddListener(delegate { UpdateText(); });
+    }
 
-    //        if (Physics.Raycast(ray, out hit))
-    //        {
-    //            if (hit.collider != null)
-    //            {
-    //                foreach (Transform child in transform)
-    //                {
-    //                    if (child.name.Contains("Piece"))
-    //                    {
-    //                        rigidbody = child.GetComponent<Rigidbody>();
-
-    //                        if (rigidbody != null && rigidbody.constraints != RigidbodyConstraints.None)
-    //                        {
-    //                            rigidbody.constraints = RigidbodyConstraints.None;
-    //                            rigidbody.useGravity = true;
-
-    //                            Renderer renderer = child.GetComponent<Renderer>();
-
-    //                            Vector3 force = transform.forward.normalized * thrust;
-
-    //                            if (!renderer.bounds.Contains(hit.point))
-    //                            {
-    //                                float dist = Vector3.Distance(child.GetComponent<Renderer>().bounds.center, hit.point);
-    //                                force *= normalDistribution(dist);
-    //                            }
-
-    //                            rigidbody.AddForceAtPosition(force, hit.point);
-    //                        }
-    //                    }
-    //                }
-    //            }
-    //        }
-    //    }
-    //}
+    void UpdateText()
+    {
+        text.text = "Force: " + MAX_THRUST * slider.value;
+    }
 
     public void SmashIt(RaycastHit hit)
     {
@@ -71,7 +44,7 @@ public class Smash : MonoBehaviour
 
                     Renderer renderer = child.GetComponent<Renderer>();
 
-                    Vector3 force = transform.forward.normalized * thrust;
+                    Vector3 force = transform.forward.normalized * slider.value * MAX_THRUST;
 
                     if (!renderer.bounds.Contains(hit.point))
                     {
@@ -79,7 +52,7 @@ public class Smash : MonoBehaviour
                         force *= normalDistribution(dist);
                     }
 
-                    if (force.z > 50)
+                    if (force.z > 25)
                     {
                         rigidbody.AddForceAtPosition(force, hit.point);
                     }

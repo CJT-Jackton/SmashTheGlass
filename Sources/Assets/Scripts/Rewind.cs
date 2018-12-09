@@ -19,12 +19,12 @@ public class Rewind : MonoBehaviour
     }
 
     bool isRecording = false;
-    float recordTime = 3f;
 
     List<TransformInTime> transformInTime;
     Rigidbody rigidbody;
 
     public Scrollbar timeline;
+    public float recordTime = 3f;
 
     // Use this for initialization
     void Start()
