@@ -1,14 +1,23 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class ShowPoint : MonoBehaviour {
 
     public GameObject point;
+    public Toggle toggle;
 
     List<GameObject> points = new List<GameObject>();
 
-    public void CreatePoints(Vector2[] position)
+    private void Start()
+    {
+        toggle.onValueChanged.AddListener(delegate {
+            ToggleValueChanged(toggle);
+        });
+    }
+
+    public void CreatePoints(Vector2[] position, Vector2 center)
     {
         Destroy();
 
@@ -22,12 +31,25 @@ public class ShowPoint : MonoBehaviour {
             newPoint.transform.parent = gameObject.transform;
             newPoint.transform.localPosition = pos;
 
-            newPoint.GetComponent<ParticleSystem>().startColor = Color.HSVToRGB(Vector3.Distance(pos, new Vector2(0, 0)), 1, 1);
+            newPoint.GetComponent<ParticleSystem>().startColor = Color.HSVToRGB(Vector3.Distance(pos, center), 1, 1);
 
             points.Add(newPoint);
         }
+
+        ToggleValueChanged(toggle);
     }
 
+    void ToggleValueChanged(Toggle toggle)
+    {
+        if (toggle.isOn)
+        {
+            Show();
+        }
+        else
+        {
+            Hide();
+        }
+    }
     public void Show()
     {
         if (points.Count > 0)

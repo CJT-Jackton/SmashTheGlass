@@ -13,6 +13,7 @@ public class Glass : MonoBehaviour
     private Rigidbody rigidbody;
     private GeneratePieces gp;
     private RandomPoint randomPoint;
+    private ShowPoint showPoint;
     private VoronoiCell voronoi;
     private Smash smash;
 
@@ -22,9 +23,11 @@ public class Glass : MonoBehaviour
     void Start()
     {
         pieces = new List<GameObject>();
+        gameObject.AddComponent<VoronoiCell>();
 
         gp = GetComponent<GeneratePieces>();
         randomPoint = GetComponent<RandomPoint>();
+        showPoint = GetComponent<ShowPoint>();
         voronoi = GetComponent<VoronoiCell>();
         smash = GetComponent<Smash>();
 
@@ -43,7 +46,7 @@ public class Glass : MonoBehaviour
 
             if (Physics.Raycast(ray, out hit))
             {
-                if (hit.collider != null)
+                if (hit.collider != null && hit.collider.gameObject == gameObject)
                 {
                     if (!_broken)
                     {
@@ -91,6 +94,7 @@ public class Glass : MonoBehaviour
                         }
                         //test[16].x -= 0.1f;
 
+                        showPoint.CreatePoints(random, new Vector2(center.x, center.y));
                         Vector2[][] pieces = voronoi.GenerateVoronoi(random);
 
                         foreach (Vector2[] piece in pieces)
@@ -126,6 +130,10 @@ public class Glass : MonoBehaviour
             if (_broken)
             {
                 ResetGlass();
+                Destroy(voronoi);
+
+                gameObject.AddComponent<VoronoiCell>();
+                voronoi = GetComponent<VoronoiCell>();
             }
         }
 
@@ -192,6 +200,9 @@ public class Glass : MonoBehaviour
 
             rigidbody = glass.AddComponent(typeof(Rigidbody)) as Rigidbody;
             rigidbody.constraints = RigidbodyConstraints.FreezePositionY | RigidbodyConstraints.FreezeRotationY;
+
+            // remove the box collider of glass
+            Destroy(glass.GetComponent<BoxCollider>());
         }
     }
 

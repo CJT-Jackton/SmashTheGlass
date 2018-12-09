@@ -64,8 +64,6 @@ public class Rewind : MonoBehaviour
         timeline.value = 1f;
         timeline.enabled = true;
         rigidbody.isKinematic = true;
-
-        Debug.Log("Stop record " + name);
     }
 
     void Update()
