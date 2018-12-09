@@ -50,7 +50,7 @@ public class VoronoiCell : MonoBehaviour
             if (eventP.type == 0)
             {
                 if (eventP.index == 7)
-                { Debug.Log(""); }
+                { int asd = 0; }
                 BL.Insert(eventP);
             }
             else if (eventP.type == 1)
@@ -155,19 +155,20 @@ public class VoronoiCell : MonoBehaviour
 
                     current = current.Right;
                 }
-                if (ymin > boundaryHigh && s.x > target.s.x)
-                    ADDRight(target, newNode);
-                else if (ymin > boundaryHigh && s.x < target.s.x)
-                    ADDLeft(target, newNode);
-                // If its a triangle's bottom point, it should add to the left of target site.
-                else if (target.Left != null && GetParabolaIntersect(target.s.x, target.s.y, newNode.s.y, newNode.s.x) ==
-                    GetParabolaIntersect(target.Left.s.x, target.Left.s.y, newNode.s.y, newNode.s.x))
-                {
-                    //ADDLeft(target, newNode);
-                    Debug.Log("triangle's bottom point");
-                }
 
-                else
+                //if (ymin > boundaryHigh && s.x > target.s.x)
+                //    ADDRight(target, newNode);
+                //else if (ymin > boundaryHigh && s.x < target.s.x)
+                //    ADDLeft(target, newNode);
+                //// If its a triangle's bottom point, it should add to the left of target site.
+                //else if (target.Left != null && GetParabolaIntersect(target.s.x, target.s.y, newNode.s.y, newNode.s.x) ==
+                //    GetParabolaIntersect(target.Left.s.x, target.Left.s.y, newNode.s.y, newNode.s.x))
+                //{
+                //    //ADDLeft(target, newNode);
+                //    Debug.Log("triangle's bottom point");
+                //}
+
+                //else
                     SplitADD(target, newNode);
             }
         }
@@ -290,7 +291,7 @@ public class VoronoiCell : MonoBehaviour
         public void HandleVVEvent(VoronoiVertexPoint p)
         {
             if (p.breakPoint( 7, 10, 0))
-            { Debug.Log("asd"); }
+            { int ymp = 0; }
             // This voronoi vertex circle contains other site.
             foreach (Site s in allCells)
                 if (p.InSideCircle(s))
@@ -377,7 +378,6 @@ public class VoronoiCell : MonoBehaviour
             VoronoiVertexPoint vvp = GetVoronoiVertexEvent(pi, pj, pk);
             if (vvp == null)
                 return;
-            
             
             if (vvp.breakPoint(7, 10, 0))
             { Debug.Log("asd"); }
