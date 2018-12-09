@@ -7,13 +7,12 @@ public class Smash : MonoBehaviour
 {
     public Slider slider;
     public Text text;
-
-    Rigidbody rigidbody;
+    
     float MAX_THRUST = 1000.0f;
 
     private float normalDistribution(float x)
     {
-        float stdDev = 0.25f;
+        float stdDev = 0.5f;
         float mean = 0;
         return Mathf.Exp(-Mathf.Pow((x - mean), 2.0f) / (2.0f * stdDev * stdDev));
     }
@@ -35,7 +34,7 @@ public class Smash : MonoBehaviour
         {
             if (child.name.Contains("Piece"))
             {
-                rigidbody = child.GetComponent<Rigidbody>();
+                Rigidbody rigidbody = child.GetComponent<Rigidbody>();
 
                 if (rigidbody != null && rigidbody.constraints != RigidbodyConstraints.None)
                 {
