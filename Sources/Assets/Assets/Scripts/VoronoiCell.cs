@@ -10,7 +10,7 @@ public class VoronoiCell : MonoBehaviour
 {
     static EventQueue eq = new EventQueue();
 
-    public Vector2[][] GenerateVoronoi(Vector2[] points, Vector2 hitCenter)
+    public Vector2[][] GenerateVoronoi(Vector2[] points, Vector2 center)
     {
         eq.ClearAll();
         Cell[] allCells;
@@ -31,8 +31,9 @@ public class VoronoiCell : MonoBehaviour
             eq.Enqueue(newSite);
             allCells[i] = new Cell(2, i, x, y);
         }
-        BeachLine BL = new BeachLine(allCells, hitCenter);
+        BeachLine BL = new BeachLine(allCells, center);
 
+        float lastY = float.MaxValue;
         while (!eq.IsEmpty())
         {
             Site eventP = eq.Dequeue();
@@ -55,6 +56,7 @@ public class VoronoiCell : MonoBehaviour
             else if (eventP.type == 1)
                 BL.HandleVVEvent((VoronoiVertexPoint)eventP);
 
+            lastY = currentY;
             BL.Print();
         }
 
@@ -82,14 +84,14 @@ public class VoronoiCell : MonoBehaviour
         Cell[] allCells;
         List<VoronoiVertexPoint> voronoiVertex = new List<VoronoiVertexPoint>();
         int count;
-        Vector2 center;
+        Vector2 hitCenter;
 
         public BeachLine(Cell[] Cells, Vector2 center)
         {
             this.allCells = Cells;
-            head = null;
-            count = 0;
-            this.center = center;
+            this.head = null;
+            this.count = 0;
+            this.hitCenter = center;
         }
 
         /// <summary>
@@ -105,14 +107,11 @@ public class VoronoiCell : MonoBehaviour
                 head = newNode;
             else
             {
-                bool findRight = false;
-                float ymin = float.MaxValue;
-                float parabola = 0;
-                float findRightDist = float.MaxValue;
                 Node target = head;
                 Node current = head;
-                if (s.index == 3)
-                    findRight = false;
+                float ymin = float.MaxValue;
+                float parabola = 0;
+
                 // Iterate until the end.
                 while (current != null)
                 {
@@ -142,82 +141,82 @@ public class VoronoiCell : MonoBehaviour
             }
         }
 
-        /// <summary>
-        /// Add the new Node on the right side of the target node.
-        /// </summary>
-        /// <param name="targetNode"></param>
-        /// <param name="newNode"></param>
-        public void ADDRight(Node targetNode, Node newNode)
-        {
-            Node tmpRight = targetNode.Right;   // Might be null.
-            Node tmpLeft = targetNode.Left;   // Might be null.
-            if (tmpRight == null)   // Bottom.
-            {
-                newNode.Left = targetNode;
-                targetNode.Right = newNode;
-                if (tmpLeft != null)
-                    CheckCircleEvent(tmpLeft.s, targetNode.s, newNode.s, true);
-            }
-            else
-            {
-                // Remove the affected circle event. 
-                if (tmpLeft != null)
-                    CheckCircleEvent(tmpLeft.s, targetNode.s, tmpRight.s, false);
-                if (tmpRight.Right != null)
-                    CheckCircleEvent(targetNode.s, tmpRight.s, tmpRight.Right.s, false);
+        ///// <summary>
+        ///// Add the new Node on the right side of the target node.
+        ///// </summary>
+        ///// <param name="targetNode"></param>
+        ///// <param name="newNode"></param>
+        //public void ADDRight(Node targetNode, Node newNode)
+        //{
+        //    Node tmpRight = targetNode.Right;   // Might be null.
+        //    Node tmpLeft = targetNode.Left;   // Might be null.
+        //    if (tmpRight == null)   // Bottom.
+        //    {
+        //        newNode.Left = targetNode;
+        //        targetNode.Right = newNode;
+        //        if (tmpLeft != null)
+        //            CheckCircleEvent(tmpLeft.s, targetNode.s, newNode.s, true);
+        //    }
+        //    else
+        //    {
+        //        // Remove the affected circle event. 
+        //        if (tmpLeft != null)
+        //            CheckCircleEvent(tmpLeft.s, targetNode.s, tmpRight.s, false);
+        //        if (tmpRight.Right != null)
+        //            CheckCircleEvent(targetNode.s, tmpRight.s, tmpRight.Right.s, false);
 
-                targetNode.Right = newNode;
-                newNode.Left = targetNode;
-                newNode.Right = tmpRight;
-                tmpRight.Left = newNode;
+        //        targetNode.Right = newNode;
+        //        newNode.Left = targetNode;
+        //        newNode.Right = tmpRight;
+        //        tmpRight.Left = newNode;
 
-                // Check all possible circle event.
-                CheckCircleEvent(targetNode.s, newNode.s, tmpRight.s, true);
-                if (tmpLeft != null)
-                    CheckCircleEvent(tmpLeft.s, targetNode.s, newNode.s, true);
-                if (tmpRight.Right != null)
-                    CheckCircleEvent(newNode.s, tmpRight.s, tmpRight.Right.s, true);
-            }
-        }
+        //        // Check all possible circle event.
+        //        CheckCircleEvent(targetNode.s, newNode.s, tmpRight.s, true);
+        //        if (tmpLeft != null)
+        //            CheckCircleEvent(tmpLeft.s, targetNode.s, newNode.s, true);
+        //        if (tmpRight.Right != null)
+        //            CheckCircleEvent(newNode.s, tmpRight.s, tmpRight.Right.s, true);
+        //    }
+        //}
 
-        /// <summary>
-        /// Add the new Node on the left side of the target node.
-        /// </summary>
-        /// <param name="targetNode"></param>
-        /// <param name="newNode"></param>
-        public void ADDLeft(Node targetNode, Node newNode)
-        {
-            Node tmpRight = targetNode.Right;   // Might be null.
-            Node tmpLeft = targetNode.Left; // Might be null.
-            if (tmpLeft == null)    // Target is head.
-            {
-                newNode.Right = targetNode;
-                targetNode.Left = newNode;
-                this.head = newNode;
-                if (tmpRight != null)
-                    CheckCircleEvent(newNode.s, targetNode.s, tmpRight.s, true);
-            }
-            else
-            {
-                // Remove the affected circle event. 
-                if (tmpLeft.Left != null)
-                    CheckCircleEvent(tmpLeft.Left.s, tmpLeft.s, targetNode.s, false);
-                if (tmpLeft.Right != null && tmpRight != null) // tmpLeft.Right is targetNode?
-                    CheckCircleEvent(tmpLeft.s, targetNode.s, tmpRight.s, false);
+        ///// <summary>
+        ///// Add the new Node on the left side of the target node.
+        ///// </summary>
+        ///// <param name="targetNode"></param>
+        ///// <param name="newNode"></param>
+        //public void ADDLeft(Node targetNode, Node newNode)
+        //{
+        //    Node tmpRight = targetNode.Right;   // Might be null.
+        //    Node tmpLeft = targetNode.Left; // Might be null.
+        //    if (tmpLeft == null)    // Target is head.
+        //    {
+        //        newNode.Right = targetNode;
+        //        targetNode.Left = newNode;
+        //        this.head = newNode;
+        //        if (tmpRight != null)
+        //            CheckCircleEvent(newNode.s, targetNode.s, tmpRight.s, true);
+        //    }
+        //    else
+        //    {
+        //        // Remove the affected circle event. 
+        //        if (tmpLeft.Left != null)
+        //            CheckCircleEvent(tmpLeft.Left.s, tmpLeft.s, targetNode.s, false);
+        //        if (tmpLeft.Right != null && tmpRight != null) // tmpLeft.Right is targetNode?
+        //            CheckCircleEvent(tmpLeft.s, targetNode.s, tmpRight.s, false);
 
-                tmpLeft.Right = newNode;
-                newNode.Left = tmpLeft;
-                newNode.Right = targetNode;
-                targetNode.Left = newNode;
+        //        tmpLeft.Right = newNode;
+        //        newNode.Left = tmpLeft;
+        //        newNode.Right = targetNode;
+        //        targetNode.Left = newNode;
 
-                // Check all possible circle event.
-                CheckCircleEvent(tmpLeft.s, newNode.s, targetNode.s, true);
-                if (tmpLeft.Left != null)
-                    CheckCircleEvent(tmpLeft.Left.s, tmpLeft.s, newNode.s, true);
-                if (tmpRight != null)
-                    CheckCircleEvent(newNode.s, targetNode.s, tmpRight.s, true);
-            }
-        }
+        //        // Check all possible circle event.
+        //        CheckCircleEvent(tmpLeft.s, newNode.s, targetNode.s, true);
+        //        if (tmpLeft.Left != null)
+        //            CheckCircleEvent(tmpLeft.Left.s, tmpLeft.s, newNode.s, true);
+        //        if (tmpRight != null)
+        //            CheckCircleEvent(newNode.s, targetNode.s, tmpRight.s, true);
+        //    }
+        //}
 
         /// <summary>
         /// Split the target node and insert the new node in between.
@@ -249,9 +248,7 @@ public class VoronoiCell : MonoBehaviour
                 CheckCircleEvent(tmpLeft.s, targetNode.s, newNode.s, true);
             if (tmpRight != null)
                 CheckCircleEvent(newNode.s, split.s, tmpRight.s, true);
-        }
-
-        
+        } 
 
         /// <summary>
         /// Bisector (pi, pj) and (pj, pk) have met, a single bisector (pi, pk) remains.
@@ -259,9 +256,7 @@ public class VoronoiCell : MonoBehaviour
         /// <param name="p"></param>
         public void HandleVVEvent(VoronoiVertexPoint p)
         {
-            if (p.breakPoint( 7, 10, 0))
-            { int ymp = 0; }
-            // This voronoi vertex circle contains other site.
+            // There is another site in side the circle, invalid voronoi vertex.
             foreach (Site s in allCells)
                 if (p.InSideCircle(s))
                     return;
@@ -281,6 +276,7 @@ public class VoronoiCell : MonoBehaviour
             if (sameItem == null)
             {
                 voronoiVertex.Add(p);
+                
                 // Take every site in the same circle and add them to voronoi vertex's related sites.
                 foreach (Site s in allCells)
                 {
@@ -288,6 +284,7 @@ public class VoronoiCell : MonoBehaviour
                         p.AddRelatedSite(s);
                 }
                 p.Sort();
+                
                 // Assign edge points to those cells one by one.
                 for (int i = 0; i < p.relatedSites.Count; i++)
                 {
@@ -324,10 +321,6 @@ public class VoronoiCell : MonoBehaviour
                 // Remove pj.
                 pj.Left.Right = pj.Right;
                 pj.Right.Left = pj.Left;
-
-            }
-            else
-            {
             }
 
             if (p.relatedSites.Count > 3)
@@ -347,9 +340,8 @@ public class VoronoiCell : MonoBehaviour
             VoronoiVertexPoint vvp = GetVoronoiVertexEvent(pi, pj, pk);
             if (vvp == null)
                 return;
-            
-            if (vvp.breakPoint(7, 10, 0))
-            { Debug.Log("asd"); }
+
+            // Rearrange pi, pj pk to see if it is in the correct order in Beach line.
             vvp.RearrangeSites();
             if (pi.Equals(vvp.pi) && pj.Equals(vvp.pj) && pk.Equals(vvp.pk))
             {
@@ -372,16 +364,17 @@ public class VoronoiCell : MonoBehaviour
             if (pi.Equals(pk))
                 return null;
             float[] circleInfo = new float[3];
-            // The order of three sites might affect the result.
-            //Site[] newSites = RearrangeSites(pi, pj, pk);
 
+            // The order of three sites might affect the result.
             circleInfo = GetCircle(pi, pj, pk);
             VoronoiVertexPoint vvp = new VoronoiVertexPoint(1, count++, circleInfo[0],
                 circleInfo[1] - circleInfo[2], circleInfo[2], pi, pj, pk);
-            if (vvp.OnSamePoint(center))
+
+            // Brute force set the voronoi vertex to hit point center
+            if (vvp.OnSamePoint(hitCenter))
             {
-                vvp = new VoronoiVertexPoint(1, count++, center.x,
-                                center.y - circleInfo[2], circleInfo[2], pi, pj, pk);
+                vvp = new VoronoiVertexPoint(1, count++, hitCenter.x,
+                                hitCenter.y - circleInfo[2], circleInfo[2], pi, pj, pk);
             }
                 
             return vvp;
@@ -436,7 +429,7 @@ public class VoronoiCell : MonoBehaviour
         /// <param name="p"></param>
         public void SpecialCase(VoronoiVertexPoint p)
         {
-            Debug.Log("vvp"+p.x+","+p.GetY());
+            //Debug.Log("vvp"+p.x+","+p.GetY());
             Node current = this.head;
             // Find where to start in the beach line.
             while (!p.OnCircle(current.s) || !p.OnCircle(current.Right.s))
@@ -453,6 +446,7 @@ public class VoronoiCell : MonoBehaviour
             }
             int prevIndex = (relatedSitesIndex == 0) ? p.relatedSites.Count - 1 : relatedSitesIndex - 1;
 
+            // Make the realated sites in Bleach line in counter-cloack wise order.
             while (current.Right!= null && p.OnCircle(current.s) && p.OnCircle(current.Right.s))
             {
                 if (!current.Right.s.Equals(p.relatedSites[prevIndex]))
@@ -522,8 +516,8 @@ public class Site
 
     public bool Equals(Site p)
     {
-        if ((this.x == p.x || Math.Abs(this.x - p.x) < 0.000001) &&
-            (this.GetY() == p.GetY() || Math.Abs(this.GetY() - p.GetY()) < 0.000001))
+        if ((this.x == p.x || Math.Abs(this.x - p.x) < 0.000001f) &&
+            (this.GetY() == p.GetY() || Math.Abs(this.GetY() - p.GetY()) < 0.000001f))
             return true;
         return false;
     }
