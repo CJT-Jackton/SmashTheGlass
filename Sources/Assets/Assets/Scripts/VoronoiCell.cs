@@ -27,36 +27,22 @@ public class VoronoiCell : MonoBehaviour
         {
             float x = points[i].x;
             float y = points[i].y;
-            Site newSite = new Site(0, i, x, y);
-            eq.Enqueue(newSite);
-            allCells[i] = new Cell(2, i, x, y);
+            allCells[i] = new Cell(0, i, x, y);
+            eq.Enqueue(allCells[i]);
         }
+
         BeachLine BL = new BeachLine(allCells, center);
 
         float lastY = float.MaxValue;
         while (!eq.IsEmpty())
         {
             Site eventP = eq.Dequeue();
-            VoronoiVertexPoint voronoiEventP;
-            float voronoiRealY = boundaryLow - 1;
-            if (eventP.GetType() == typeof(VoronoiVertexPoint))
-            {
-                voronoiEventP = (VoronoiVertexPoint)eventP;
-                voronoiRealY = voronoiEventP.GetY();
-            }
-
-            float currentY = eventP.y;
 
             if (eventP.type == 0)
-            {
-                if (eventP.index == 7)
-                { int asd = 0; }
                 BL.Insert(eventP);
-            }
             else if (eventP.type == 1)
                 BL.HandleVVEvent((VoronoiVertexPoint)eventP);
 
-            lastY = currentY;
             BL.Print();
         }
 
@@ -491,7 +477,7 @@ public class VoronoiCell : MonoBehaviour
 
 public class Site
 {
-    // Type: 0=site, 1=voronoi point, 2=cell point, 3=boundary intersect point, 4 for testing
+    // Type: 0=cell/site, 1=voronoi point, 3=boundary intersect point, 4 for testing
     public int type, index;
     public float x, y;
     public Site() { }
