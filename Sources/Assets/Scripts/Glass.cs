@@ -1,21 +1,17 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class Glass : MonoBehaviour
 {
     public Material glassMaterial;
-    public Scrollbar timeline;
 
     private GameObject glass;
     private List<GameObject> pieces;
     private Rigidbody rigidbody;
     private GeneratePieces gp;
     private RandomPoint randomPoint;
-    private ShowPoint showPoint;
     private VoronoiCell voronoi;
-    private Smash smash;
 
     private bool _broken;
 
@@ -23,13 +19,10 @@ public class Glass : MonoBehaviour
     void Start()
     {
         pieces = new List<GameObject>();
-        gameObject.AddComponent<VoronoiCell>();
 
         gp = GetComponent<GeneratePieces>();
         randomPoint = GetComponent<RandomPoint>();
-        showPoint = GetComponent<ShowPoint>();
         voronoi = GetComponent<VoronoiCell>();
-        smash = GetComponent<Smash>();
 
         _broken = true;
 
@@ -39,55 +32,44 @@ public class Glass : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetKeyDown(KeyCode.D))
         {
-            RaycastHit hit;
-            var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-
-            if (Physics.Raycast(ray, out hit))
+            if (!_broken)
             {
-                if (hit.collider != null && hit.collider.gameObject == gameObject)
+                _broken = true;
+                Destroy(glass);
+
+                Vector2[] random = randomPoint.getRandomPoint();
+                Vector2[] test = new Vector2[30];
+
+                for (int i = 0; i < 30; i++)
                 {
-                    if (!_broken)
+                    test[i] = random[i+10];
+                    test[i].x = test[i].x + 0.30001f;
+                    test[i].y = test[i].y + 0.50001f;
+                }
+                Vector3 center = new Vector3(0.30001f, 0.50001f, 0.0f);
+                Vector2[][] pieces = voronoi.GenerateVoronoi(test, center);
+
+                foreach (Vector2[] piece in pieces)
+                {
+                    Vector3[] vertices = new Vector3[piece.Length];
+
+                    for (uint i = 0; i < piece.Length; ++i)
                     {
-                        _broken = true;
-                        Destroy(glass);
+                        vertices[i] = new Vector3(piece[i].x, 0, piece[i].y);
+                    }
 
-                        Vector3 center = gameObject.transform.InverseTransformPoint(hit.point);
-                        Vector2[] random = randomPoint.getRandomPoint(new Vector2(center.x, center.y));
-                        Vector2[] test = new Vector2[30];
-
-                        for (int i = 0; i < 30; i++)
+                    if(vertices.Length < 3)
+                    {
+                        foreach(Vector3 v in vertices)
                         {
-                            test[i] = random[i + 10];
+                            Debug.Log(v);
                         }
-
-                        showPoint.CreatePoints(random, new Vector2(center.x, center.y));
-                        Vector2[][] pieces = voronoi.GenerateVoronoi(test, center);
-
-                        foreach (Vector2[] piece in pieces)
-                        {
-                            Vector3[] vertices = new Vector3[piece.Length];
-
-                            for (uint i = 0; i < piece.Length; ++i)
-                            {
-                                vertices[i] = new Vector3(piece[i].x, 0, piece[i].y);
-                            }
-
-                            if (vertices.Length < 3)
-                            {
-                                foreach (Vector3 v in vertices)
-                                {
-                                    Debug.Log(v);
-                                }
-                            }
-                            else
-                            {
-                                AddPiece(vertices);
-                            }
-                        }
-
-                        smash.SmashIt(hit);
+                    }
+                    else
+                    {
+                        AddPiece(vertices);
                     }
                 }
             }
@@ -98,14 +80,8 @@ public class Glass : MonoBehaviour
             if (_broken)
             {
                 ResetGlass();
-                Destroy(voronoi);
-
-                gameObject.AddComponent<VoronoiCell>();
-                voronoi = GetComponent<VoronoiCell>();
             }
         }
-
-
     }
 
     IEnumerator ExecuteAfterTime(float time)
@@ -128,11 +104,6 @@ public class Glass : MonoBehaviour
 
         // Assign material
         p.GetComponent<Renderer>().material = glassMaterial;
-
-        // Recording transform
-        p.AddComponent<Rewind>();
-        p.GetComponent<Rewind>().timeline = timeline;
-        p.GetComponent<Rewind>().StartRecord();
 
         pieces.Add(p);
     }
@@ -168,9 +139,6 @@ public class Glass : MonoBehaviour
 
             rigidbody = glass.AddComponent(typeof(Rigidbody)) as Rigidbody;
             rigidbody.constraints = RigidbodyConstraints.FreezePositionY | RigidbodyConstraints.FreezeRotationY;
-
-            // remove the box collider of glass
-            Destroy(glass.GetComponent<BoxCollider>());
         }
     }
 

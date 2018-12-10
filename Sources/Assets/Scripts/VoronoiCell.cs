@@ -8,14 +8,9 @@ using System.IO;
 
 public class VoronoiCell : MonoBehaviour
 {
-    static EventQueue eq;
+    static EventQueue eq = new EventQueue();
 
-    public VoronoiCell()
-    {
-        eq = new EventQueue();
-    }
-    
-    public Vector2[][] GenerateVoronoi(Vector2[] points, Vector3 center)
+    public Vector2[][] GenerateVoronoi(Vector2[] points, Vector2 center)
     {
         eq.ClearAll();
         Cell[] allCells;
@@ -32,9 +27,8 @@ public class VoronoiCell : MonoBehaviour
         {
             float x = points[i].x;
             float y = points[i].y;
-            Site newSite = new Site(0, i, x, y);
-            eq.Enqueue(newSite);
-            allCells[i] = new Cell(2, i, x, y);
+            allCells[i] = new Cell(0, i, x, y);
+            eq.Enqueue(allCells[i]);
         }
 
         Vector2 centerV2 = new Vector2(center.x, center.y);
@@ -44,26 +38,12 @@ public class VoronoiCell : MonoBehaviour
         while (!eq.IsEmpty())
         {
             Site eventP = eq.Dequeue();
-            VoronoiVertexPoint voronoiEventP;
-            float voronoiRealY = boundaryLow - 1;
-            if (eventP.GetType() == typeof(VoronoiVertexPoint))
-            {
-                voronoiEventP = (VoronoiVertexPoint)eventP;
-                voronoiRealY = voronoiEventP.GetY();
-            }
-
-            float currentY = eventP.y;
 
             if (eventP.type == 0)
-            {
-                if (eventP.index == 7)
-                { int asd = 0; }
                 BL.Insert(eventP);
-            }
             else if (eventP.type == 1)
                 BL.HandleVVEvent((VoronoiVertexPoint)eventP);
 
-            lastY = currentY;
             BL.Print();
         }
 
@@ -255,7 +235,7 @@ public class VoronoiCell : MonoBehaviour
                 CheckCircleEvent(tmpLeft.s, targetNode.s, newNode.s, true);
             if (tmpRight != null)
                 CheckCircleEvent(newNode.s, split.s, tmpRight.s, true);
-        }
+        } 
 
         /// <summary>
         /// Bisector (pi, pj) and (pj, pk) have met, a single bisector (pi, pk) remains.
@@ -263,10 +243,10 @@ public class VoronoiCell : MonoBehaviour
         /// <param name="p"></param>
         public void HandleVVEvent(VoronoiVertexPoint p)
         {
-            // There is another site in side the circle, invalid voronoi vertex.
-            foreach (Site s in allCells)
-                if (p.InSideCircle(s))
-                    return;
+            //// There is another site in side the circle, invalid voronoi vertex.
+            //foreach (Site s in allCells)
+            //    if (p.InSideCircle(s))
+            //        return;
 
             // Find where pj is.
             Node pj = head.Right;
@@ -283,7 +263,7 @@ public class VoronoiCell : MonoBehaviour
             if (sameItem == null)
             {
                 voronoiVertex.Add(p);
-
+                
                 // Take every site in the same circle and add them to voronoi vertex's related sites.
                 foreach (Site s in allCells)
                 {
@@ -291,7 +271,7 @@ public class VoronoiCell : MonoBehaviour
                         p.AddRelatedSite(s);
                 }
                 p.Sort();
-
+                
                 // Assign edge points to those cells one by one.
                 for (int i = 0; i < p.relatedSites.Count; i++)
                 {
@@ -348,6 +328,11 @@ public class VoronoiCell : MonoBehaviour
             if (vvp == null)
                 return;
 
+            // There is another site in side the circle, invalid voronoi vertex.
+            foreach (Site s in allCells)
+                if (vvp.InSideCircle(s))
+                    return;
+
             // Rearrange pi, pj pk to see if it is in the correct order in Beach line.
             vvp.RearrangeSites();
             if (pi.Equals(vvp.pi) && pj.Equals(vvp.pj) && pk.Equals(vvp.pk))
@@ -383,7 +368,7 @@ public class VoronoiCell : MonoBehaviour
                 vvp = new VoronoiVertexPoint(1, count++, hitCenter.x,
                                 hitCenter.y - circleInfo[2], circleInfo[2], pi, pj, pk);
             }
-
+                
             return vvp;
         }
 
@@ -454,7 +439,7 @@ public class VoronoiCell : MonoBehaviour
             int prevIndex = (relatedSitesIndex == 0) ? p.relatedSites.Count - 1 : relatedSitesIndex - 1;
 
             // Make the realated sites in Bleach line in counter-cloack wise order.
-            while (current.Right != null && p.OnCircle(current.s) && p.OnCircle(current.Right.s))
+            while (current.Right!= null && p.OnCircle(current.s) && p.OnCircle(current.Right.s))
             {
                 if (!current.Right.s.Equals(p.relatedSites[prevIndex]))
                 {
@@ -463,7 +448,7 @@ public class VoronoiCell : MonoBehaviour
                 else
                 {
                     current = current.Right;
-                    relatedSitesIndex = (relatedSitesIndex == 0) ? p.relatedSites.Count - 1 : relatedSitesIndex -= 1;
+                    relatedSitesIndex = (relatedSitesIndex == 0)? p.relatedSites.Count - 1 : relatedSitesIndex -= 1;
                     prevIndex = (relatedSitesIndex == 0) ? p.relatedSites.Count - 1 : relatedSitesIndex - 1;
                 }
             }
@@ -498,7 +483,7 @@ public class VoronoiCell : MonoBehaviour
 
 public class Site
 {
-    // Type: 0=site, 1=voronoi point, 2=cell point, 3=boundary intersect point, 4 for testing
+    // Type: 0=cell/site, 1=voronoi point, 3=boundary intersect point, 4 for testing
     public int type, index;
     public float x, y;
     public Site() { }
@@ -590,7 +575,7 @@ public class VoronoiVertexPoint : Site
         if ((this.x == p.x || Math.Abs(this.x - p.x) < 0.000001) &&
             (this.GetY() == p.GetY() || Math.Abs(this.GetY() - p.GetY()) < 0.000001))
             return true;
-        if (Mathf.Approximately(this.x, p.x) && Mathf.Approximately(this.GetY(), p.GetY()))
+        if (Mathf.Approximately(this.x, p.x) && Mathf.Approximately(this.GetY(), p.GetY()) )
             return true;
         else if (Vector2.Distance(thisVector, pVector) < 0.000001f || Mathf.Approximately(dist, 0.0f))
             return true;
