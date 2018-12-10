@@ -5,8 +5,13 @@ using UnityEngine.UI;
 
 public class Rewind : MonoBehaviour
 {
+    public Scrollbar timeline;
+    public float recordTime = 3f;
 
-    public class TransformInTime
+    /// <summary>
+    /// A simple class store transformation of a game oject in a time frame.
+    /// </summary>
+    class TransformInTime
     {
         public TransformInTime(Vector3 pos, Quaternion rotate)
         {
@@ -18,15 +23,18 @@ public class Rewind : MonoBehaviour
         public Quaternion rotation;
     }
 
+    // whether recording the transform
     bool isRecording = false;
 
+    // the list of transformations over time
     List<TransformInTime> transformInTime;
+
+    // rigidbody of the game object
     Rigidbody rigidbody;
-
-    public Scrollbar timeline;
-    public float recordTime = 3f;
-
-    // Use this for initialization
+    
+    /// <summary>
+    /// Initialize the variables.
+    /// </summary>
     void Start()
     {
         isRecording = true;
@@ -35,30 +43,41 @@ public class Rewind : MonoBehaviour
         rigidbody = GetComponent<Rigidbody>();
     }
 
+    /// <summary>
+    /// Recording the transformation in each time frame.
+    /// </summary>
     void FixedUpdate()
     {
         if (isRecording)
         {
             if(transformInTime.Count >= recordTime / Time.fixedDeltaTime)
             {
-                StopRecord();
+                // stop recording if exceeded record time
+                EndRecord();
             }
             else
             {
                 float time = transformInTime.Count / (1 + recordTime / Time.fixedDeltaTime);
                 timeline.value = time;
 
+                // record the transformation
                 transformInTime.Add(new TransformInTime(transform.position, transform.rotation));
             }
         }
     }
 
+    /// <summary>
+    /// Start recording.
+    /// </summary>
     public void StartRecord()
     {
         isRecording = true;
     }
 
-    void StopRecord()
+    /// <summary>
+    /// Stop recording.
+    /// </summary>
+    void EndRecord()
     {
         isRecording = false;
         timeline.value = 1f;
@@ -66,6 +85,9 @@ public class Rewind : MonoBehaviour
         rigidbody.isKinematic = true;
     }
 
+    /// <summary>
+    /// Rewind the frame.
+    /// </summary>
     void Update()
     {
         if (!isRecording)

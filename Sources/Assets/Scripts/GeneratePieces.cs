@@ -86,19 +86,28 @@ public class GeneratePieces : MonoBehaviour
         return mesh;
     }
 
+    /// <summary>
+    /// Create the game object of the piece.
+    /// </summary>
+    /// <param name="Vertices">The vertices of the piece.</param>
+    /// <returns>The piece game object.</returns>
     public GameObject CreatePiece(Vector3[] Vertices)
     {
         GameObject piece = new GameObject();
 
         MeshFilter meshFilter = piece.AddComponent<MeshFilter>() as MeshFilter;
         MeshCollider meshCollider = piece.AddComponent<MeshCollider>() as MeshCollider;
+
+        // generate the mesh
         Mesh mesh = GenerateMesh(Vertices);
 
         meshFilter.mesh = mesh;
         meshCollider.convex = true;
         meshCollider.sharedMesh = mesh;
 
+        // create the rigidbody for physics simulation
         Rigidbody rigidbody = piece.AddComponent<Rigidbody>();
+        // freeze the piece(debug)
         rigidbody.useGravity = false;
         rigidbody.constraints = RigidbodyConstraints.FreezePositionY | RigidbodyConstraints.FreezeRotationY;
 

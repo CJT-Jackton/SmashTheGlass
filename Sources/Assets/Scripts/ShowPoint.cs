@@ -8,15 +8,24 @@ public class ShowPoint : MonoBehaviour {
     public GameObject point;
     public Toggle toggle;
 
+    // list of sites
     List<GameObject> points = new List<GameObject>();
 
-    private void Start()
+    /// <summary>
+    /// Setup the UI event.
+    /// </summary>
+    void Start()
     {
         toggle.onValueChanged.AddListener(delegate {
             ToggleValueChanged(toggle);
         });
     }
 
+    /// <summary>
+    /// Create sites from given positions.
+    /// </summary>
+    /// <param name="position">Rekative position of the sites.</param>
+    /// <param name="center">The center of the sites.</param>
     public void CreatePoints(Vector2[] position, Vector2 center)
     {
         Destroy();
@@ -39,6 +48,10 @@ public class ShowPoint : MonoBehaviour {
         ToggleValueChanged(toggle);
     }
 
+    /// <summary>
+    /// Show or hide the points when toggle value changed.
+    /// </summary>
+    /// <param name="toggle">The UI toggle.</param>
     void ToggleValueChanged(Toggle toggle)
     {
         if (toggle.isOn)
@@ -50,6 +63,10 @@ public class ShowPoint : MonoBehaviour {
             Hide();
         }
     }
+
+    /// <summary>
+    /// Show the points.
+    /// </summary>
     public void Show()
     {
         if (points.Count > 0)
@@ -61,6 +78,9 @@ public class ShowPoint : MonoBehaviour {
         }
     }
 
+    /// <summary>
+    /// Hide the points.
+    /// </summary>
     public void Hide()
     {
         if (points.Count > 0)
@@ -72,6 +92,9 @@ public class ShowPoint : MonoBehaviour {
         }
     }
 
+    /// <summary>
+    /// Clear all points in the list.
+    /// </summary>
     public void Destroy()
     {
         if (points.Count > 0)

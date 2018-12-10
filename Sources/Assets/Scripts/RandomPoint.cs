@@ -15,7 +15,8 @@ public class RandomPoint : MonoBehaviour
 
     public RandomPoint()
     {
-        System.Random random = new System.Random(new DateTime().Millisecond);
+        int seed = DateTime.Now.Millisecond;
+        System.Random random = new System.Random(seed);
         //UnityEngine.Random.seed = new DateTime().Millisecond;
 
         base_theta = new float[RAY_NUM];
