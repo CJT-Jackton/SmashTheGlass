@@ -9,6 +9,7 @@ public class Glass : MonoBehaviour
     public Scrollbar timeline;
     public Text timer;
     public Button resetButton;
+    public GameObject prompt;
     public float recordTime;
 
     private GameObject glass;
@@ -34,6 +35,8 @@ public class Glass : MonoBehaviour
         voronoi = new VoronoiCell();
 
         resetButton.onClick.AddListener(ResetGame);
+
+        prompt.active = true;
 
         _broken = true;
 
@@ -94,6 +97,7 @@ public class Glass : MonoBehaviour
                             }
                         }
 
+                        prompt.active = false;
                         smash.SmashIt(hit);
                     }
                 }
@@ -118,6 +122,7 @@ public class Glass : MonoBehaviour
             voronoi = new VoronoiCell();
 
             timeline.value = 0f;
+            prompt.active = true;
         }
     }
 

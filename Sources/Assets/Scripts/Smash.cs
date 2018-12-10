@@ -5,27 +5,47 @@ using UnityEngine.UI;
 
 public class Smash : MonoBehaviour
 {
-    public Slider slider;
-    public Text text;
-    
-    float MAX_THRUST = 1000.0f;
+    public Slider ThrustSlider;
+    public Text ThrustText;
 
-    private float normalDistribution(float x)
-    {
-        float stdDev = 0.5f;
-        float mean = 0;
-        return Mathf.Exp(-Mathf.Pow((x - mean), 2.0f) / (2.0f * stdDev * stdDev));
-    }
+    public Slider StdDevSlider;
+    public Text StdDevText;
+
+    public Slider GlassStrengthSlider;
+    public Text GlassStrengthText;
 
     void Start()
     {
-        UpdateText();
-        slider.onValueChanged.AddListener(delegate { UpdateText(); });
+        UpdateThrustText();
+        ThrustSlider.onValueChanged.AddListener(delegate { UpdateThrustText(); });
+
+        UpdateStdDevText();
+        StdDevSlider.onValueChanged.AddListener(delegate { UpdateStdDevText(); });
+
+        UpdateGlassStrengthText();
+        GlassStrengthSlider.onValueChanged.AddListener(delegate { UpdateGlassStrengthText(); });
     }
 
-    void UpdateText()
+    void UpdateThrustText()
     {
-        text.text = "Force: " + MAX_THRUST * slider.value;
+        ThrustText.text = "Force: " + ThrustSlider.value;
+    }
+
+    void UpdateStdDevText()
+    {
+        StdDevText.text = "Standard Dev: " + StdDevSlider.value;
+    }
+
+    void UpdateGlassStrengthText()
+    {
+        GlassStrengthText.text = "Glass strength: " + GlassStrengthSlider.value;
+    }
+
+    private float normalDistribution(float x)
+    {
+        float stdDev = StdDevSlider.value;
+        float mean = 0;
+        return Mathf.Exp(-Mathf.Pow((x - mean), 2.0f) / (2.0f * stdDev * stdDev));
     }
 
     public void SmashIt(RaycastHit hit)
@@ -43,7 +63,7 @@ public class Smash : MonoBehaviour
 
                     Renderer renderer = child.GetComponent<Renderer>();
 
-                    Vector3 force = transform.forward.normalized * slider.value * MAX_THRUST;
+                    Vector3 force = transform.forward.normalized * ThrustSlider.value;
 
                     if (!renderer.bounds.Contains(hit.point))
                     {
@@ -51,7 +71,7 @@ public class Smash : MonoBehaviour
                         force *= normalDistribution(dist);
                     }
 
-                    if (force.z > 25)
+                    if (force.z >= GlassStrengthSlider.value)
                     {
                         rigidbody.AddForceAtPosition(force, hit.point);
                     }
