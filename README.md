@@ -14,6 +14,8 @@ When the webpage starts, there is going to be a glass showing in front of the ca
 - Rewind:  
 After smashing the glass into peices, users can drag the scroll bar below the screen to see the process of it. Drag it slowly to make it an epic replay!
 
+![shatter rewind](https://drive.google.com/uc?export=view&id=1-unrMa9HZAYlKRz8h0O7FYPQ3JagxbJ3)
+
 - Force:  
 Users can decide how hard they want to smash the glass. With greater power, the glasses will fall further away.
 
