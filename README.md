@@ -15,7 +15,7 @@ When the webpage starts, there will be a glass shown in front of the camera. Use
 After smashing the glass into peices, users can drag the scroll bar below the screen to see the process of it. Drag it slowly to make it an epic replay!
 
 - Force:  
-Users can decide how hard they want to smash the glass. With greater power, the glasses wwould fell further away.
+Users can decide how hard they want to smash the glass. With greater power, the glasses will fall further away.
 
 - Standard Dev:  
 Standard deviation controls how dense the force will be. When the number becomes less, the impact area will become smaller. Think of it as a bullet, the glass still shatters, but only the ones closer to the center will fall. When the number gets higher, the impact area will become larger, like throwing a basketball to the glass.
