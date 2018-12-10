@@ -243,26 +243,11 @@ public class VoronoiCell : MonoBehaviour
         /// <param name="p"></param>
         public void HandleVVEvent(VoronoiVertexPoint p)
         {
-            //// There is another site in side the circle, invalid voronoi vertex.
-            //foreach (Site s in allCells)
-            //    if (p.InSideCircle(s))
-            //        return;
-
-            // Find where pj is.
-            Node pj = head.Right;
-            while (pj.Left != null && pj != null && pj.Right != null
-                && (!pj.Left.s.Equals(p.pi)
-                || !pj.s.Equals(p.pj)
-                || !pj.Right.s.Equals(p.pk)))
-            {
-                pj = pj.Right;
-            }
-
             // If the voronoi vertex already exist, do not do anything.
             var sameItem = voronoiVertex.SingleOrDefault(r => (p.OnSamePoint(r)));
             if (sameItem == null)
             {
-                Debug.Log("Circle event:" + p.pi.index + "," + p.pj.index + "," + p.pk.index + " handling.");
+                //Debug.Log("Circle event:" + p.pi.index + "," + p.pj.index + "," + p.pk.index + " handling.");
                 voronoiVertex.Add(p);
 
                 // Take every site in the same circle and add them to voronoi vertex's related sites.
@@ -292,6 +277,16 @@ public class VoronoiCell : MonoBehaviour
                     SpecialCase(p);
                 else
                 {
+                    // Find where pj is.
+                    Node pj = head.Right;
+                    while (pj.Left != null && pj != null && pj.Right != null
+                        && (!pj.Left.s.Equals(p.pi)
+                        || !pj.s.Equals(p.pj)
+                        || !pj.Right.s.Equals(p.pk)))
+                    {
+                        pj = pj.Right;
+                    }
+
                     // Affected bisectors need to be cleaned.
                     // Remove: (pi-1, pi, pj), (pj, pk, pk+1) 
                     // Add: (pi-1, pi, pk), (pi, pk, pk+1) if not duplicate.
@@ -314,12 +309,15 @@ public class VoronoiCell : MonoBehaviour
                     // Remove pj.
                     pj.Left.Right = pj.Right;
                     pj.Right.Left = pj.Left;
+
+                    Debug.Log("Circle event:" + p.pi.index + "," + p.pj.index + "," + p.pk.index + " handled.");
                 }
-                Debug.Log("Circle event:" + p.pi.index + "," + p.pj.index + "," + p.pk.index + " handled.");
             }
             else
-                Debug.Log("Circle event:"+p.pi.index + ","+p.pj.index + ","+p.pk.index + " is duplicate, ignore.");
-
+            {
+                //Debug.Log("Circle event:" + p.pi.index + "," + p.pj.index + "," + p.pk.index + " is duplicate, ignore.");
+            }
+                
         }
 
         /// <summary>
@@ -429,7 +427,6 @@ public class VoronoiCell : MonoBehaviour
         /// <param name="p"></param>
         public void SpecialCase(VoronoiVertexPoint p)
         {
-            //Debug.Log("vvp"+p.x+","+p.GetY());
             Node current = this.head;
             // Find where to start in the beach line.
             while (!p.OnCircle(current.s) || !p.OnCircle(current.Right.s))
@@ -466,6 +463,8 @@ public class VoronoiCell : MonoBehaviour
                 CheckCircleEvent(start.Left.s, start.s, start.Right.s, true);
             if (current.Right != null)
                 CheckCircleEvent(current.Left.s, current.s, current.Right.s, true);
+
+            //Debug.Log("Circle event:" + p.pi.index + "," + p.pj.index + "," + p.pk.index + " handled.");
         }
 
         public bool IsEmpty()
