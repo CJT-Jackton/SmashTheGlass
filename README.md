@@ -39,6 +39,7 @@ Unity (C#)
 
 ## References:  
 [Voronoi diagram wiki](https://en.wikipedia.org/wiki/Voronoi_diagram)  
+[Fortune's algorithm wiki](https://en.wikipedia.org/wiki/Fortune%27s_algorithm)
 
 ## Author:  
 Jietong Chen, Hao Su
