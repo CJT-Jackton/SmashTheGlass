@@ -64,16 +64,16 @@ public class Glass : MonoBehaviour
 
                         Vector3 center = gameObject.transform.InverseTransformPoint(hit.point);
                         Vector2[] random = randomPoint.getRandomPoint(new Vector2(center.x, center.y));
-                        Vector2[] test = new Vector2[30];
+                        Vector2[] test = new Vector2[random.Length];
 
-                        for (int i = 0; i < 30; i++)
+                        for (int i = 0; i < random.Length - 10; i++)
                         {
                             test[i] = random[i + 10];
                         }
                         //test[16].x -= 0.1f;
 
                         showPoint.CreatePoints(random, new Vector2(center.x, center.y));
-                        Vector2[][] pieces = voronoi.GenerateVoronoi(test, hit.point);
+                        Vector2[][] pieces = voronoi.GenerateVoronoi(random, hit.point);
 
                         foreach (Vector2[] piece in pieces)
                         {
