@@ -25,10 +25,10 @@ The process of generating shattered glasses is divided into several phases as fo
   If there are more than three points on the same circle, the beach line will find them all, sorted in clock-wise order, and create edges for each pair of them. After that, the beach line will clean itself so that the remaining sites are in correct order. Later on if a handled circle event is popping out, the beach line will simply ignore it.  
   Lastly, the program clips the voronoi diagram with four bounding lines to set up the open ended edges and keep the sites and its edges within a certain range, and store each site's surrounding voronoi vertex in clock-wise order for the next phase.
 
-- Glasses Generation: 
+- Glasses Generation:  
   With all the glass's points set up, it generates peices of the glass and apply force to the hit point, making the glasses falling to the ground.
 
-- User Interface: 
+- User Interface:  
   After the glass shattered to peices, there is a scroll bar below the screen for the user to rewind what just happened, in any speed they want. 
 There is another feature on the right side of the screen called "Show Sites". After enabling it, the user is able to see the random points generated in the second phase.
 
