@@ -3,9 +3,8 @@
 ## Overview:  
 An interactive webpage to simulate the effect of a 3D shattered glass smashed by the user.  
 Users will click on the screen to shoot a bullet or smashing a hammer, the glass will be broken like the following image.  
-
-![shattered glass](https://www.textures.com/system/gallery/photos/Windows/Broken%20Glass/22088/BrokenGlass0007_2_download600.jpg)  
-![InGameGlass](https://raw.githubusercontent.com/CJT-Jackton/SmashTheGlass/master/Image/Capture.PNG)
+ 
+![shattered glass](https://raw.githubusercontent.com/CJT-Jackton/SmashTheGlass/master/Image/Capture.PNG)
 
 This project will be using Voronoi diagram to imitate the desired effect.  
 
