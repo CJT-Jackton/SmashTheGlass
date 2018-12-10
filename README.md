@@ -9,7 +9,7 @@ Users will click on the screen to shoot a bullet or smashing a hammer, the glass
 This project will be using Voronoi diagram to imitate the desired effect.  
 
 ## User Interaction:  
-When the webpage starts, there will be a glass shown in front of the camera. Users can click on any point of the glass to smash it.
+When the webpage starts, there is going to be a glass showing in front of the camera. Users can click on any point of the glass to smash it.
 
 - Rewind:  
 After smashing the glass into peices, users can drag the scroll bar below the screen to see the process of it. Drag it slowly to make it an epic replay!
