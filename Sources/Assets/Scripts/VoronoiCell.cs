@@ -8,14 +8,9 @@ using System.IO;
 
 public class VoronoiCell : MonoBehaviour
 {
-    static EventQueue eq;
+    static EventQueue eq = new EventQueue();
 
-    public VoronoiCell()
-    {
-        eq = new EventQueue();
-    }
-
-    public Vector2[][] GenerateVoronoi(Vector2[] points, Vector3 center)
+    public Vector2[][] GenerateVoronoi(Vector2[] points, Vector2 center)
     {
         eq.ClearAll();
         Cell[] allCells;
@@ -32,9 +27,8 @@ public class VoronoiCell : MonoBehaviour
         {
             float x = points[i].x;
             float y = points[i].y;
-            Site newSite = new Site(0, i, x, y);
-            eq.Enqueue(newSite);
-            allCells[i] = new Cell(2, i, x, y);
+            allCells[i] = new Cell(0, i, x, y);
+            eq.Enqueue(allCells[i]);
         }
 
         Vector2 centerV2 = new Vector2(center.x, center.y);
@@ -44,26 +38,12 @@ public class VoronoiCell : MonoBehaviour
         while (!eq.IsEmpty())
         {
             Site eventP = eq.Dequeue();
-            VoronoiVertexPoint voronoiEventP;
-            float voronoiRealY = boundaryLow - 1;
-            if (eventP.GetType() == typeof(VoronoiVertexPoint))
-            {
-                voronoiEventP = (VoronoiVertexPoint)eventP;
-                voronoiRealY = voronoiEventP.GetY();
-            }
-
-            float currentY = eventP.y;
 
             if (eventP.type == 0)
-            {
-                if (eventP.index == 7)
-                { int asd = 0; }
                 BL.Insert(eventP);
-            }
             else if (eventP.type == 1)
                 BL.HandleVVEvent((VoronoiVertexPoint)eventP);
 
-            lastY = currentY;
             BL.Print();
         }
 
@@ -263,10 +243,10 @@ public class VoronoiCell : MonoBehaviour
         /// <param name="p"></param>
         public void HandleVVEvent(VoronoiVertexPoint p)
         {
-            // There is another site in side the circle, invalid voronoi vertex.
-            foreach (Site s in allCells)
-                if (p.InSideCircle(s))
-                    return;
+            //// There is another site in side the circle, invalid voronoi vertex.
+            //foreach (Site s in allCells)
+            //    if (p.InSideCircle(s))
+            //        return;
 
             // Find where pj is.
             Node pj = head.Right;
@@ -282,6 +262,7 @@ public class VoronoiCell : MonoBehaviour
             var sameItem = voronoiVertex.SingleOrDefault(r => (p.OnSamePoint(r)));
             if (sameItem == null)
             {
+                Debug.Log("Circle event:" + p.pi.index + "," + p.pj.index + "," + p.pk.index + " handling.");
                 voronoiVertex.Add(p);
 
                 // Take every site in the same circle and add them to voronoi vertex's related sites.
@@ -305,33 +286,40 @@ public class VoronoiCell : MonoBehaviour
                     allCells[cellIndex1].AddEdgePoint(p, allCells[cellIndex2]);
                     allCells[cellIndex2].AddEdgePoint(p, allCells[cellIndex1]);
                 }
+                Debug.Log("Circle event: #"+p.relatedSites.Count);
 
-                // Affected bisectors need to be cleaned.
-                // Remove: (pi-1, pi, pj), (pj, pk, pk+1) 
-                // Add: (pi-1, pi, pk), (pi, pk, pk+1) if not duplicate.
-                VoronoiVertexPoint tmp;
-                if (pj.Left.Left != null)
+                if (p.relatedSites.Count > 3)
+                    SpecialCase(p);
+                else
                 {
-                    CheckCircleEvent(pj.Left.Left.s, pj.Left.s, pj.s, false);
-                    tmp = GetVoronoiVertexEvent(pj.Left.Left.s, pj.Left.s, pj.Right.s);
-                    if (tmp != null && !tmp.OnSamePoint(p))
-                        CheckCircleEvent(pj.Left.Left.s, pj.Left.s, pj.Right.s, true);
-                }
-                if (pj.Right.Right != null)
-                {
-                    CheckCircleEvent(pj.s, pj.Right.s, pj.Right.Right.s, false);
-                    tmp = GetVoronoiVertexEvent(pj.Left.s, pj.Right.s, pj.Right.Right.s);
-                    if (tmp != null && !tmp.OnSamePoint(p))
-                        CheckCircleEvent(pj.Left.s, pj.Right.s, pj.Right.Right.s, true);
-                }
+                    // Affected bisectors need to be cleaned.
+                    // Remove: (pi-1, pi, pj), (pj, pk, pk+1) 
+                    // Add: (pi-1, pi, pk), (pi, pk, pk+1) if not duplicate.
+                    VoronoiVertexPoint tmp;
+                    if (pj.Left.Left != null)
+                    {
+                        CheckCircleEvent(pj.Left.Left.s, pj.Left.s, pj.s, false);
+                        tmp = GetVoronoiVertexEvent(pj.Left.Left.s, pj.Left.s, pj.Right.s);
+                        if (tmp != null && !tmp.OnSamePoint(p))
+                            CheckCircleEvent(pj.Left.Left.s, pj.Left.s, pj.Right.s, true);
+                    }
+                    if (pj.Right.Right != null)
+                    {
+                        CheckCircleEvent(pj.s, pj.Right.s, pj.Right.Right.s, false);
+                        tmp = GetVoronoiVertexEvent(pj.Left.s, pj.Right.s, pj.Right.Right.s);
+                        if (tmp != null && !tmp.OnSamePoint(p))
+                            CheckCircleEvent(pj.Left.s, pj.Right.s, pj.Right.Right.s, true);
+                    }
 
-                // Remove pj.
-                pj.Left.Right = pj.Right;
-                pj.Right.Left = pj.Left;
+                    // Remove pj.
+                    pj.Left.Right = pj.Right;
+                    pj.Right.Left = pj.Left;
+                }
+                Debug.Log("Circle event:" + p.pi.index + "," + p.pj.index + "," + p.pk.index + " handled.");
             }
+            else
+                Debug.Log("Circle event:"+p.pi.index + ","+p.pj.index + ","+p.pk.index + " is duplicate, ignore.");
 
-            if (p.relatedSites.Count > 3)
-                SpecialCase(p);
         }
 
         /// <summary>
@@ -347,6 +335,11 @@ public class VoronoiCell : MonoBehaviour
             VoronoiVertexPoint vvp = GetVoronoiVertexEvent(pi, pj, pk);
             if (vvp == null)
                 return;
+
+            // There is another site in side the circle, invalid voronoi vertex.
+            foreach (Site s in allCells)
+                if (vvp.InSideCircle(s))
+                    return;
 
             // Rearrange pi, pj pk to see if it is in the correct order in Beach line.
             vvp.RearrangeSites();
@@ -491,14 +484,14 @@ public class VoronoiCell : MonoBehaviour
                 status = status + current.s.index + "-";
                 current = current.Right;
             }
-            //Debug.Log(status);
+            Debug.Log(status);
         }
     }
 }
 
 public class Site
 {
-    // Type: 0=site, 1=voronoi point, 2=cell point, 3=boundary intersect point, 4 for testing
+    // Type: 0=cell/site, 1=voronoi point, 3=boundary intersect point, 4 for testing
     public int type, index;
     public float x, y;
     public Site() { }
@@ -587,12 +580,12 @@ public class VoronoiVertexPoint : Site
         Vector2 thisVector = new Vector2(this.x, this.GetY());
         Vector2 pVector = new Vector2(p.x, p.GetY());
         float dist = Vector2.Distance(thisVector, pVector);
-        if ((this.x == p.x || Math.Abs(this.x - p.x) < 0.000001) &&
-            (this.GetY() == p.GetY() || Math.Abs(this.GetY() - p.GetY()) < 0.000001))
+        if ((this.x == p.x || Math.Abs(this.x - p.x) < 0.00001f) &&
+            (this.GetY() == p.GetY() || Math.Abs(this.GetY() - p.GetY()) < 0.00001f))
             return true;
         if (Mathf.Approximately(this.x, p.x) && Mathf.Approximately(this.GetY(), p.GetY()))
             return true;
-        else if (Vector2.Distance(thisVector, pVector) < 0.000001f || Mathf.Approximately(dist, 0.0f))
+        else if (Vector2.Distance(thisVector, pVector) < 0.00001f || Mathf.Approximately(dist, 0.0f))
             return true;
         return false;
     }
@@ -634,9 +627,9 @@ public class VoronoiVertexPoint : Site
         // Approximate in case of similar floating point.
         if (dist == this.radius || Mathf.Approximately(dist, this.radius))
             return true;
-        if (Math.Abs(dist - this.radius) < 0.000001f)
+        if (Math.Abs(dist - this.radius) < 0.00001f)
             return true;
-        if ((Vector2.Distance(thisVector, sVector) - this.radius) < 0.000001f)
+        if ((Vector2.Distance(thisVector, sVector) - this.radius) < 0.00001f)
             return true;
         return false;
     }
