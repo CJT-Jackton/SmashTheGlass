@@ -1,4 +1,6 @@
 # Smash the glass
+[Link to the WebGL of the project](https://cjt-jackton.github.io/SmashTheGlass/)
+
 
 ## Overview:  
 An interactive webpage to simulate the effect of a 3D shattered glass smashed by the user.  
