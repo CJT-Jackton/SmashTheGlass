@@ -54,8 +54,7 @@ The process of generating shattered glasses is divided into several phases as fo
   After calculate the voronoi cells for the sites, the program generates pieces of the glass and apply force at the hit point. The farther the geometric center of the piece away from the hit point, the smaller the force it takes. The force attenuation follows the standard distribution, with user defined standard deviation.
 
 ## Language and tools:  
-Unity (C#)  version 2018.2
-
+Unity (C#)  version 2018.2  
 [WebGL](http://learningwebgl.com/blog/?p=11)  
 
 ## References:  
