@@ -22,7 +22,7 @@ public class RandomPoint : MonoBehaviour
         System.Random random = new System.Random(seed);
         //UnityEngine.Random.seed = DateTime.Now.Millisecond;
 
-        RING_NUM = random.Next(3, 4);
+        RING_NUM = random.Next(4, 4);
         RAY_NUM = random.Next(9, 11);
 
         base_theta = new float[RAY_NUM];
@@ -32,11 +32,11 @@ public class RandomPoint : MonoBehaviour
 
         for (uint i = 0; i < RAY_NUM; ++i)
         {
-            base_theta[i] = randomNormal(i * step, 0.0004f) + theta_offset;
+            base_theta[i] = randomNormal(i * step, 0.004f) + theta_offset;
         }
 
         base_radius = new float[RING_NUM + 1];
-        base_radius[0] = 0.0f;
+        base_radius[0] = 1.0f;
 
         float centrifugation = 0.5f;
         float sum = 0.0f;
@@ -72,7 +72,15 @@ public class RandomPoint : MonoBehaviour
     {
         Vector2[] point = new Vector2[RING_NUM * RAY_NUM];
 
-        for (uint i = 0; i < RING_NUM; ++i)
+        for (uint i = 0; i < RAY_NUM; ++i)
+        {
+            float r = base_radius[0] * (0.25f + 0.75f * (float)random.NextDouble());
+            float theta = 360 * (float)random.NextDouble();
+
+            point[i] = polarToCartesian(r, theta);
+        }
+
+        for (uint i = 1; i < RING_NUM; ++i)
         {
             for (uint j = 0; j < RAY_NUM; ++j)
             {
@@ -80,8 +88,14 @@ public class RandomPoint : MonoBehaviour
                 base_theta[j] += randomNormal(0.0f, 0.02f * r);
                 float theta = base_theta[j] * 360;
 
-                point[i * RAY_NUM + j] = polarToCartesian(r, theta) + center;
+                point[i * RAY_NUM + j] = polarToCartesian(r, theta);
             }
+        }
+        
+        // recenter the points
+        for(uint i= 0; i < point.Length; ++i)
+        {
+            point[i] += center;
         }
 
         return point;
